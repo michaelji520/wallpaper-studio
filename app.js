@@ -142,9 +142,6 @@ const deviceSelect= $('deviceSelect');
 const deviceMeta  = $('deviceMeta');
 const cutoutLabel = $('cutoutLabel');
 
-const readoutDevice = $('readoutDevice');
-const readoutSize   = $('readoutSize');
-const readoutScale  = $('readoutScale');
 
 const fitBtn      = $('fitBtn');
 const oneBtn      = $('oneBtn');
@@ -364,8 +361,6 @@ function applyDevice(){
   applySquircle();
 
   buildDeviceOptions();
-  readoutDevice.textContent = d.name;
-  readoutSize.textContent = d.w + ' × ' + d.h;
 
   const rr = Number.isInteger(d.r) ? d.r : d.r.toFixed(2).replace(/\.?0+$/, '');
   if (d.generic){
@@ -406,7 +401,6 @@ function setZoom(z, fitMode){
   scaler.style.transform = `translate(-50%, -50%) scale(${z})`;
   const pct = Math.round(z * 100) + '%';
   zoomOut.textContent = pct;
-  readoutScale.textContent = pct;
   zoomRange.value = String(Math.round(z * 100));
   fitBtn.classList.toggle('on', state.fitMode);
   oneBtn.classList.toggle('on', !state.fitMode && Math.abs(z - 1) < .004);

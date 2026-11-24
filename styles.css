@@ -55,9 +55,6 @@ svg{display:block}
 .brand-text b{font-size:13px;font-weight:600;letter-spacing:.01em}
 .brand-text em{font-style:normal;font-size:11px;color:var(--faint);letter-spacing:.06em}
 
-.readout{display:flex;align-items:center;gap:10px;font-size:12px;color:#c9c7c2;white-space:nowrap;overflow:hidden}
-.readout .dot{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.22);flex:0 0 auto}
-.ro-group{display:flex;align-items:center;gap:10px}
 
 .zoom-bar{margin-left:auto;display:flex;align-items:center;gap:12px}
 .zoom-btns{display:flex;gap:2px;padding:3px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}
@@ -552,11 +549,9 @@ kbd{
 /* ---------- responsive ---------- */
 @media (max-width:1180px){
   :root{--panel-w:308px}
-  .ro-size{display:none}
 }
 @media (max-width:1000px){
   .brand-text em{display:none}
-  .readout{display:none}
   .zoom-range input[type=range]{width:78px}
   .canvas-area{padding:64px 28px}
 }
