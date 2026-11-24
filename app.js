@@ -22,13 +22,25 @@ const CUTOUTS = ['island','notch','waterdrop','punch'];
 const CUTOUT_LABEL = { island:'灵动岛', notch:'刘海', waterdrop:'水滴', punch:'挖孔' };
 
 const ENV_PRESETS = [
-  { id:'mist',     name:'雾白', css:'radial-gradient(120% 95% at 50% 5%,#f6f4f0 0%,#ded9d1 55%,#c5bfb5 100%)' },
-  { id:'graphite', name:'石墨', css:'radial-gradient(120% 90% at 50% 0%,#2c2d32 0%,#111214 58%,#08090b 100%)' },
-  { id:'clay',     name:'陶土', css:'radial-gradient(100% 80% at 28% 18%,#c07a5f 0%,#7d4334 48%,#3a1f18 100%)' },
-  { id:'ocean',    name:'深海', css:'radial-gradient(90% 75% at 22% 10%,#1a5768 0%,#0a2028 55%,#050f14 100%)' },
-  { id:'aurora',   name:'极光', css:'radial-gradient(75% 65% at 72% 18%,#4a3280 0%,#221a44 45%,#0a0913 100%)' },
-  { id:'sand',     name:'沙丘', css:'linear-gradient(165deg,#3c2a20 0%,#1d130f 60%,#0b0807 100%)' }
+  { id:'mist',     name:'雾白', kind:'radial', at:[.50,.05], radius:[1.20,.95],
+    stops:[[0,'#f6f4f0'],[.55,'#ded9d1'],[1,'#c5bfb5']] },
+  { id:'graphite', name:'石墨', kind:'radial', at:[.50,.00], radius:[1.20,.90],
+    stops:[[0,'#2c2d32'],[.58,'#111214'],[1,'#08090b']] },
+  { id:'clay',     name:'陶土', kind:'radial', at:[.28,.18], radius:[1.00,.80],
+    stops:[[0,'#c07a5f'],[.48,'#7d4334'],[1,'#3a1f18']] },
+  { id:'ocean',    name:'深海', kind:'radial', at:[.22,.10], radius:[.90,.75],
+    stops:[[0,'#1a5768'],[.55,'#0a2028'],[1,'#050f14']] },
+  { id:'aurora',   name:'极光', kind:'radial', at:[.72,.18], radius:[.75,.65],
+    stops:[[0,'#4a3280'],[.45,'#221a44'],[1,'#0a0913']] },
+  { id:'sand',     name:'沙丘', kind:'linear', angle:165,
+    stops:[[0,'#3c2a20'],[.60,'#1d130f'],[1,'#0b0807']] }
 ];
+
+function envCSS(p){
+  const stops = p.stops.map(([o, c]) => `${c} ${Math.round(o * 1000) / 10}%`).join(',');
+  if (p.kind === 'linear') return `linear-gradient(${p.angle}deg,${stops})`;
+  return `radial-gradient(${p.radius[0] * 100}% ${p.radius[1] * 100}% at ${p.at[0] * 100}% ${p.at[1] * 100}%,${stops})`;
+}
 
 const WALLPAPERS = [
   {
@@ -123,6 +135,7 @@ let dragDepth = 0;
 
 const $ = (id) => document.getElementById(id);
 const stage       = $('stage');
+const viewportEl  = $('viewport');
 const canvasArea  = $('canvasArea');
 const scaler      = $('scaler');
 const device      = $('device');
@@ -331,22 +344,27 @@ function buildDeviceOptions(){
   deviceSelect.value = state.deviceId;
 }
 
+function squircleGeom(d){
+  const pad = d.pad ?? 11;
+  const S = 0.6;
+  const rOut = d.r + pad;
+  const pOut = (1 + S) * rOut;
+  const sFor = (r, inset) => Math.max(0, (pOut - inset) / r - 1);
+  return {
+    pad,
+    dev:    { w: d.w + pad * 2,        h: d.h + pad * 2,        r: rOut,        s: S },
+    bezel:  { w: d.w + pad * 2 - 10,   h: d.h + pad * 2 - 10,   r: rOut - 5,    s: sFor(rOut - 5, 5) },
+    screen: { w: d.w,                  h: d.h,                  r: d.r,         s: sFor(d.r, pad) }
+  };
+}
+
 function applySquircle(){
   const d = getDevice();
-  const pad = d.pad ?? 11;
-  const S = 0.6;                       // 连续曲率平滑度（Figma/iOS 默认 60%）
-  const W = d.w + pad * 2;
-  const H = d.h + pad * 2;
-
-  const rOut = d.r + pad;
-  const pOut = (1 + S) * rOut;         // 机身圆角的过渡段长度
-
-  // 内层按"等距偏移"反推：过渡段长度随内缩量递减，保证边框厚度均匀
-  const sFor = (radius, inset) => Math.max(0, (pOut - inset) / radius - 1);
-
-  device.style.clipPath = `path("${squirclePath(W, H, rOut, S)}")`;
-  bezelEl.style.clipPath = `path("${squirclePath(W - 10, H - 10, d.r + pad - 5, sFor(d.r + pad - 5, 5))}")`;
-  screenEl.style.clipPath = `path("${squirclePath(d.w, d.h, d.r, sFor(d.r, pad))}")`;
+  const geo = squircleGeom(d);
+  const q = (k) => `path("${squirclePath(geo[k].w, geo[k].h, geo[k].r, geo[k].s)}")`;
+  device.style.clipPath = q('dev');
+  bezelEl.style.clipPath = q('bezel');
+  screenEl.style.clipPath = q('screen');
 }
 
 function applyDevice(){
@@ -500,7 +518,12 @@ function applyMedia(){
     currentVideo = v;
     v.addEventListener('play', () => { if (currentVideo === v) videoToggle.textContent = '暂停视频'; });
     v.addEventListener('pause', () => { if (currentVideo === v) videoToggle.textContent = '播放视频'; });
-    v.addEventListener('loadeddata', () => { if (currentVideo === v) syncTone(v); });
+    const sampleVideoTone = () => { if (currentVideo === v) syncTone(v); };
+    if ('requestVideoFrameCallback' in v){
+      v.requestVideoFrameCallback(sampleVideoTone);
+    } else {
+      v.addEventListener('loadeddata', () => setTimeout(sampleVideoTone, 120), { once: true });
+    }
     v.play().catch(() => {});
     videoTools.hidden = false;
     videoToggle.textContent = '暂停视频';
@@ -577,7 +600,7 @@ function applyEnv(){
     envEl.style.backgroundColor = '#0a0a0c';
   } else {
     const p = ENV_PRESETS.find(x => x.id === e.presetId) || ENV_PRESETS[0];
-    envEl.style.background = p.css;
+    envEl.style.background = envCSS(p);
   }
 
   envEl.style.filter = `blur(${e.blur}px) brightness(${e.dim / 100})`;
@@ -615,19 +638,35 @@ function applyFit(){
 }
 
 /* ============================================================
-   导出：内容区 → 2K 图片 / 视频
+   导出：内容区（环境背景 + 整机）→ 2K 图片 / 视频
    ============================================================ */
 
-const EXPORT_H = 2560;
+const EXPORT_W = 2560;
 const svgCache = new Map();
+let envImage = null, envImageSrc = null;
 
-function exportCanvas(){
-  const d = getDevice();
-  const H = EXPORT_H;
-  const W = Math.round(H * d.w / d.h);
-  const c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  return { c, g: c.getContext('2d'), d, W, H, k: W / d.w };
+function linearGradient(g, angle, w, h, stops){
+  const a = (angle % 360) * Math.PI / 180;
+  const dx = Math.sin(a), dy = -Math.cos(a);
+  const len = Math.abs(w * dx) + Math.abs(h * dy);
+  const gr = g.createLinearGradient(
+    w / 2 - dx * len / 2, h / 2 - dy * len / 2,
+    w / 2 + dx * len / 2, h / 2 + dy * len / 2
+  );
+  stops.forEach(([o, c]) => gr.addColorStop(o, c));
+  return gr;
+}
+
+/** 椭圆径向渐变：借坐标系缩放把圆拉成椭圆 */
+function radialEllipse(g, cx, cy, rx, ry, stops, w, h){
+  g.save();
+  g.translate(cx, cy);
+  g.scale(Math.max(rx, 1), Math.max(ry, 1));
+  const rg = g.createRadialGradient(0, 0, 0, 0, 0, 1);
+  stops.forEach(([o, c]) => rg.addColorStop(o, c));
+  g.fillStyle = rg;
+  g.fillRect(-24, -24, 48, 48);
+  g.restore();
 }
 
 function rrect(g, x, y, w, h, r){
@@ -639,6 +678,59 @@ function rrect(g, x, y, w, h, r){
   g.arcTo(x, y + h, x, y, rr);
   g.arcTo(x, y, x + w, y, rr);
   g.closePath();
+}
+
+function envImageEl(){
+  if (state.env.mode !== 'image' || !state.env.src) return null;
+  if (envImageSrc !== state.env.src){
+    envImageSrc = state.env.src;
+    envImage = new Image();
+    envImage.src = state.env.src;
+  }
+  return envImage;
+}
+
+async function ensureEnvImage(){
+  const img = envImageEl();
+  if (img && !img.complete) await img.decode().catch(() => {});
+}
+
+function applyDim(g, w, h, dim){
+  if (dim === 100) return;
+  g.save();
+  g.fillStyle = dim < 100
+    ? `rgba(0,0,0,${(100 - dim) / 100 * .85})`
+    : `rgba(255,255,255,${Math.min((dim - 100) / 200, .35)})`;
+  g.fillRect(0, 0, w, h);
+  g.restore();
+}
+
+function paintEnv(g, w, h){
+  const e = state.env;
+  const img = envImageEl();
+  if (e.mode === 'image' && img && img.complete && img.naturalWidth){
+    const s = Math.max(w / img.naturalWidth, h / img.naturalHeight) * (1 + e.blur / 85);
+    const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
+    g.save();
+    if ('filter' in g) g.filter = `blur(${e.blur}px) brightness(${e.dim}%)`;
+    g.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    g.restore();
+    if (!('filter' in g)) applyDim(g, w, h, e.dim);
+    return;
+  }
+  const p = ENV_PRESETS.find(x => x.id === e.presetId) || ENV_PRESETS[0];
+  if (p.kind === 'linear'){
+    g.fillStyle = linearGradient(g, p.angle, w, h, p.stops);
+    g.fillRect(0, 0, w, h);
+  } else {
+    radialEllipse(g, p.at[0] * w, p.at[1] * h, p.radius[0] * w, p.radius[1] * h, p.stops, w, h);
+  }
+  applyDim(g, w, h, e.dim);
+}
+
+function paintVignette(g, w, h){
+  radialEllipse(g, w * .5, h * .4, w * 1.2, h * 1.0,
+    [[0, 'rgba(0,0,0,0)'], [.4, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.35)']], w, h);
 }
 
 function drawWallpaper(g, W, H){
@@ -688,17 +780,16 @@ function drawCutout(g, d, W, k){
   }
 }
 
-/** 把页面里的 SVG 图标栅格化成 Image（按 viewBox 放大 8 倍保证清晰） */
+/** 页面里的 SVG 图标 → Image（按 viewBox 放大 8 倍栅格化，2K 下不糊） */
 function svgImage(el, color){
   const key = (el.getAttribute('class') || '') + '|' + color;
   if (svgCache.has(key)) return svgCache.get(key);
   const clone = el.cloneNode(true);
   const cs = getComputedStyle(el);
   const vb = (clone.getAttribute('viewBox') || '0 0 24 24').split(/\s+/).map(Number);
-  const S = 8;
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  clone.setAttribute('width', vb[2] * S);
-  clone.setAttribute('height', vb[3] * S);
+  clone.setAttribute('width', vb[2] * 8);
+  clone.setAttribute('height', vb[3] * 8);
   clone.setAttribute('fill', cs.fill === 'none' ? 'none' : 'currentColor');
   if (cs.stroke && cs.stroke !== 'none') clone.setAttribute('stroke', 'currentColor');
   const markup = clone.outerHTML.replace(/currentColor/g, color);
@@ -713,8 +804,8 @@ function svgImage(el, color){
   return p;
 }
 
-/** 预先把状态栏/锁屏元素换算成画布坐标与绘制指令 */
-async function buildChromeLayer(d, W, k){
+/** 预计算锁屏元素在屏幕局部坐标里的绘制指令（k 为目标单位/显示像素） */
+async function buildChromeLayer(d, k){
   const sr = screenEl.getBoundingClientRect();
   const z = (sr.width / d.w) || 1;
   const toC = r => ({
@@ -736,13 +827,15 @@ async function buildChromeLayer(d, W, k){
     const r = toC(el.getBoundingClientRect());
     const cs = getComputedStyle(el);
     const text = el.textContent;
+    const color = cs.color;
     const size = parseFloat(cs.fontSize) * k;
     const ls = (parseFloat(cs.letterSpacing) || 0) * k;
+    const font = `${cs.fontWeight} ${size}px ${cs.fontFamily}`;
     ops.push(g => {
-      g.fillStyle = cs.color;
+      g.fillStyle = color;
       g.textAlign = 'center';
       g.textBaseline = 'middle';
-      g.font = `${cs.fontWeight} ${size}px ${cs.fontFamily}`;
+      g.font = font;
       if ('letterSpacing' in g) g.letterSpacing = ls + 'px';
       g.fillText(text, r.x + r.w / 2, r.y + r.h / 2);
       if ('letterSpacing' in g) g.letterSpacing = '0px';
@@ -752,11 +845,12 @@ async function buildChromeLayer(d, W, k){
   for (const orb of document.querySelectorAll('.orb')){
     const r = toC(orb.getBoundingClientRect());
     const cs = getComputedStyle(orb);
+    const orbBg = cs.backgroundColor;
     const iconEl = orb.querySelector('svg');
     const ir = iconEl ? toC(iconEl.getBoundingClientRect()) : null;
     const icon = iconEl ? await svgImage(iconEl, cs.color) : null;
     ops.push(g => {
-      g.fillStyle = cs.backgroundColor;
+      g.fillStyle = orbBg;
       g.beginPath();
       g.arc(r.x + r.w / 2, r.y + r.h / 2, r.w / 2, 0, Math.PI * 2);
       g.fill();
@@ -767,11 +861,94 @@ async function buildChromeLayer(d, W, k){
   const hb = document.querySelector('.home-bar');
   if (hb){
     const r = toC(hb.getBoundingClientRect());
-    const cs = getComputedStyle(hb);
-    ops.push(g => { g.fillStyle = cs.backgroundColor; rrect(g, r.x, r.y, r.w, r.h, r.h / 2); g.fill(); });
+    const hbBg = getComputedStyle(hb).backgroundColor;
+    ops.push(g => { g.fillStyle = hbBg; rrect(g, r.x, r.y, r.w, r.h, r.h / 2); g.fill(); });
   }
 
   return { draw(g){ for (const fn of ops) fn(g); } };
+}
+
+/** 整机：机身 + 黑边 + 屏幕内容 + 侧键 + 落地阴影 */
+function drawPhone(g, vp, layer){
+  const d = getDevice();
+  const geo = squircleGeom(d);
+  const devRect = device.getBoundingClientRect();
+  const x = devRect.left - vp.left, y = devRect.top - vp.top;
+  const z = devRect.width / geo.dev.w;
+
+  const bodyPath = new Path2D(squirclePath(geo.dev.w * z, geo.dev.h * z, geo.dev.r * z, geo.dev.s));
+  const bezelPath = new Path2D(squirclePath(geo.bezel.w * z, geo.bezel.h * z, geo.bezel.r * z, geo.bezel.s));
+  const screenPath = new Path2D(squirclePath(geo.screen.w * z, geo.screen.h * z, geo.screen.r * z, geo.screen.s));
+
+  g.save();
+  g.translate(x, y);
+
+  // 落地阴影
+  g.save();
+  g.shadowColor = 'rgba(0,0,0,.40)';
+  g.shadowBlur = 36 * z;
+  g.shadowOffsetY = 16 * z;
+  g.fillStyle = 'rgba(0,0,0,.5)';
+  g.fill(bodyPath);
+  g.restore();
+
+  // 机身金属
+  g.save();
+  g.clip(bodyPath);
+  const metal = d.os === 'android'
+    ? [[0,'#4b4f56'],[.38,'#22252a'],[.62,'#3c4046'],[1,'#14161a']]
+    : [[0,'#c6bfb1'],[.04,'#8b857a'],[.12,'#45413b'],[.34,'#232120'],[.58,'#2b2926'],[.8,'#55504a'],[.94,'#9a9387'],[1,'#cbc4b6']];
+  g.fillStyle = linearGradient(g, 152, geo.dev.w * z, geo.dev.h * z, metal);
+  g.fillRect(0, 0, geo.dev.w * z, geo.dev.h * z);
+  g.restore();
+
+  // 黑边
+  g.save();
+  g.translate(5 * z, 5 * z);
+  g.fillStyle = '#050506';
+  g.fill(bezelPath);
+  g.restore();
+
+  // 屏幕
+  g.save();
+  g.translate(geo.pad * z, geo.pad * z);
+  g.clip(screenPath);
+  drawWallpaper(g, geo.screen.w * z, geo.screen.h * z);
+  drawCutout(g, d, geo.screen.w * z, z);
+  if (layer) layer.draw(g);
+  g.restore();
+
+  g.restore();
+
+  // 侧键
+  document.querySelectorAll('.btn-side').forEach(el => {
+    if (getComputedStyle(el).display === 'none') return;
+    const r = el.getBoundingClientRect();
+    if (!r.width) return;
+    const bx = r.left - vp.left, by = r.top - vp.top;
+    g.save();
+    g.fillStyle = linearGradient(g, 90, r.width, r.height, [[0,'#7d776d'],[1,'#3a3733']]);
+    rrect(g, bx, by, r.width, r.height, Math.min(2, r.width / 2));
+    g.fill();
+    g.restore();
+  });
+}
+
+function stageCanvas(){
+  const vp = viewportEl.getBoundingClientRect();
+  const S = EXPORT_W / vp.width;
+  const c = document.createElement('canvas');
+  c.width = EXPORT_W;
+  c.height = Math.round(vp.height * S);
+  const g = c.getContext('2d');
+  g.setTransform(S, 0, 0, S, 0, 0);   // 之后一律用内容区的 CSS 坐标
+  return { c, g, vp, S };
+}
+
+function drawScene(g, vp, layer){
+  paintEnv(g, vp.width, vp.height);
+  drawPhone(g, vp, layer);
+  paintVignette(g, vp.width, vp.height);
 }
 
 function downloadBlob(blob, name){
@@ -789,20 +966,19 @@ async function exportImage(){
   if (btn.classList.contains('busy')) return;
   btn.classList.add('busy');
   try{
-    const { c, g, d, W, H, k } = exportCanvas();
-    if (!drawWallpaper(g, W, H)){ toast('壁纸还没加载完，稍后再试'); return; }
-    drawCutout(g, d, W, k);
-    if (state.lock){
-      const layer = await buildChromeLayer(d, W, k);
-      layer.draw(g);
-    }
+    const d = getDevice();
+    const { c, g, vp } = stageCanvas();
+    await ensureEnvImage();
+    const z = screenEl.getBoundingClientRect().width / d.w;
+    const layer = state.lock ? await buildChromeLayer(d, z) : null;
+    drawScene(g, vp, layer);
     const blob = await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('画布导出失败')), 'image/png'));
-    downloadBlob(blob, `wallpaper-${d.id}-${W}x${H}.png`);
-    toast(`已导出 ${W} × ${H} PNG`);
+    downloadBlob(blob, `wallpaper-scene-${d.id}-${c.width}x${c.height}.png`);
+    toast(`已导出 ${c.width} × ${c.height} PNG`);
   } catch(err){
     console.error(err);
     toast(err && err.name === 'SecurityError'
-      ? '跨域壁纸无法导出，请改用本地上传'
+      ? '跨域素材无法导出，请改用本地上传'
       : '导出失败：' + (err.message || '未知错误'));
   } finally {
     btn.classList.remove('busy');
@@ -817,8 +993,12 @@ async function exportVideo(){
   if (btn.classList.contains('busy')) return;
   btn.classList.add('busy');
 
-  const { c, g, d, W, H, k } = exportCanvas();
-  const layer = state.lock ? await buildChromeLayer(d, W, k) : null;
+  const d = getDevice();
+  const { c, g, vp } = stageCanvas();
+  await ensureEnvImage();
+  const z = screenEl.getBoundingClientRect().width / d.w;
+  const layer = state.lock ? await buildChromeLayer(d, z) : null;
+
   c.style.cssText = 'position:fixed;left:-10000px;top:0;pointer-events:none';
   document.body.appendChild(c);
 
@@ -840,9 +1020,7 @@ async function exportVideo(){
     const t0 = performance.now();
     await new Promise(res => {
       const tick = () => {
-        drawWallpaper(g, W, H);
-        drawCutout(g, d, W, k);
-        if (layer) layer.draw(g);
+        drawScene(g, vp, layer);
         if (performance.now() - t0 < durMs) requestAnimationFrame(tick);
         else res();
       };
@@ -854,7 +1032,7 @@ async function exportVideo(){
 
     const blob = new Blob(chunks, { type: mime || 'video/webm' });
     const ext = /mp4/.test(mime) ? 'mp4' : 'webm';
-    downloadBlob(blob, `wallpaper-${d.id}-${W}x${H}-${Math.round(durMs / 1000)}s.${ext}`);
+    downloadBlob(blob, `wallpaper-scene-${d.id}-${c.width}x${c.height}-${Math.round(durMs / 1000)}s.${ext}`);
     toast(`已导出 ${Math.round(durMs / 1000)} 秒视频`);
   } catch(err){
     console.error(err);
@@ -921,7 +1099,7 @@ function buildSwatches(){
     b.className = 'swatch color';
     b.dataset.id = p.id;
     b.title = p.name;
-    b.style.background = p.css;
+    b.style.background = envCSS(p);
     b.addEventListener('click', () => {
       if (envURL){ URL.revokeObjectURL(envURL); envURL = null; }
       state.env.mode = 'preset';
