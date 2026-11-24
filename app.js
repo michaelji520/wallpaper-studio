@@ -787,9 +787,12 @@ function svgImage(el, color){
   const clone = el.cloneNode(true);
   const cs = getComputedStyle(el);
   const vb = (clone.getAttribute('viewBox') || '0 0 24 24').split(/\s+/).map(Number);
+  // 固定输出高度，避免大 viewBox（如 SF Symbols 的 1390×1000）按倍数放大后占用巨量内存
+  const OUT_H = 512;
+  const rk = OUT_H / (vb[3] || 24);
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  clone.setAttribute('width', vb[2] * 8);
-  clone.setAttribute('height', vb[3] * 8);
+  clone.setAttribute('width', Math.round(vb[2] * rk));
+  clone.setAttribute('height', OUT_H);
   clone.setAttribute('fill', cs.fill === 'none' ? 'none' : 'currentColor');
   if (cs.stroke && cs.stroke !== 'none') clone.setAttribute('stroke', 'currentColor');
   const markup = clone.outerHTML.replace(/currentColor/g, color);

@@ -249,8 +249,9 @@ svg{display:block}
 /* 状态栏图标用 iOS 固定点值，不随屏宽缩放 */
 .sb-icons{display:flex;align-items:flex-end;gap:6px}
 .sb-icons svg{display:block;fill:currentColor}
-.sb-cell{width:18px;height:12px}
-.sb-wifi{width:15.6px;height:12.1px}
+/* 状态栏图标按 SF Symbols 的原始比例渲染：height 固定 12pt，宽度自适应 */
+.sb-cell{height:12px;width:auto}   /* 1554:1000 → 18.65pt */
+.sb-wifi{height:12px;width:auto}   /* 1390:1000 → 16.68pt */
 .sb-batt{width:27px;height:13px}
 
 .lockscreen{
@@ -279,7 +280,9 @@ svg{display:block}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
   color:rgba(255,255,255,.86);
 }
-.orb svg{width:24px;height:24px;fill:currentColor}
+.orb svg{fill:currentColor;width:auto}
+.orb .ic-flash{height:21px}   /* 415:1000 → 8.7pt 宽 */
+.orb .ic-cam{height:17px}     /* 1288:1000 → 21.9pt 宽 */
 
 .device.is-android .lockscreen{align-items:flex-start;text-align:left;padding:calc(var(--dh) * .13) calc(var(--dw) * .075) calc(var(--dh) * .045)}
 .device.is-android .lock-main{align-items:flex-start}
