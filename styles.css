@@ -56,6 +56,15 @@ svg{display:block}
 .brand-text em{font-style:normal;font-size:11px;color:var(--faint);letter-spacing:.06em}
 
 
+.export-bar{display:flex;align-items:center;gap:2px;padding:3px;border-radius:10px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);margin-left:6px}
+.ebtn{padding:5px 10px;border-radius:7px;font-size:11.5px;letter-spacing:.02em;color:#a9adb4;
+  white-space:nowrap;transition:all .18s ease}
+.ebtn:hover{color:#fff;background:rgba(255,255,255,.08)}
+.ebtn:active{transform:translateY(1px)}
+.ebtn.busy{color:var(--accent);pointer-events:none}
+@media (max-width:860px){.export-bar{display:none}}
+
 .zoom-bar{margin-left:auto;display:flex;align-items:center;gap:12px}
 .zoom-btns{display:flex;gap:2px;padding:3px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}
 .zbtn{

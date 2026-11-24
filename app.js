@@ -614,6 +614,258 @@ function applyFit(){
   if (v) v.style.objectFit = state.fit;
 }
 
+/* ============================================================
+   导出：内容区 → 2K 图片 / 视频
+   ============================================================ */
+
+const EXPORT_H = 2560;
+const svgCache = new Map();
+
+function exportCanvas(){
+  const d = getDevice();
+  const H = EXPORT_H;
+  const W = Math.round(H * d.w / d.h);
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  return { c, g: c.getContext('2d'), d, W, H, k: W / d.w };
+}
+
+function rrect(g, x, y, w, h, r){
+  const rr = Math.min(r, w / 2, h / 2);
+  g.beginPath();
+  g.moveTo(x + rr, y);
+  g.arcTo(x + w, y, x + w, y + h, rr);
+  g.arcTo(x + w, y + h, x, y + h, rr);
+  g.arcTo(x, y + h, x, y, rr);
+  g.arcTo(x, y, x + w, y, rr);
+  g.closePath();
+}
+
+function drawWallpaper(g, W, H){
+  const el = mediaEl.querySelector('.wp');
+  const sw = el ? (el.naturalWidth || el.videoWidth || 0) : 0;
+  const sh = el ? (el.naturalHeight || el.videoHeight || 0) : 0;
+  g.fillStyle = '#0a0a0c';
+  g.fillRect(0, 0, W, H);
+  if (!sw || !sh) return false;
+  const s = state.fit === 'contain' ? Math.min(W / sw, H / sh) : Math.max(W / sw, H / sh);
+  const dw = sw * s, dh = sh * s;
+  try { g.drawImage(el, (W - dw) / 2, (H - dh) / 2, dw, dh); return true; }
+  catch(e){ return false; }
+}
+
+function drawCutout(g, d, W, k){
+  const sw = d.w * k;
+  const cx = W / 2;
+  g.fillStyle = '#000';
+  if (state.cutout === 'island'){
+    const w = 0.262 * sw, h = 0.076 * sw;
+    rrect(g, cx - w / 2, 0.028 * sw, w, h, h / 2); g.fill();
+  } else if (state.cutout === 'notch'){
+    const w = 0.46 * sw, h = 0.066 * sw, r = 0.052 * sw;
+    g.beginPath();
+    g.moveTo(cx - w / 2, 0);
+    g.lineTo(cx - w / 2, h - r);
+    g.quadraticCurveTo(cx - w / 2, h, cx - w / 2 + r, h);
+    g.lineTo(cx + w / 2 - r, h);
+    g.quadraticCurveTo(cx + w / 2, h, cx + w / 2, h - r);
+    g.lineTo(cx + w / 2, 0);
+    g.closePath(); g.fill();
+  } else if (state.cutout === 'waterdrop'){
+    const w = 0.076 * sw, h = 0.058 * sw;
+    g.beginPath();
+    g.moveTo(cx - w / 2, 0);
+    g.lineTo(cx - w / 2, h * 0.42);
+    g.quadraticCurveTo(cx - w / 2, h, cx, h);
+    g.quadraticCurveTo(cx + w / 2, h, cx + w / 2, h * 0.42);
+    g.lineTo(cx + w / 2, 0);
+    g.closePath(); g.fill();
+  } else {
+    const r = 0.0165 * sw;
+    g.beginPath();
+    g.arc(cx, 0.026 * sw + r, r, 0, Math.PI * 2);
+    g.fill();
+  }
+}
+
+/** 把页面里的 SVG 图标栅格化成 Image（按 viewBox 放大 8 倍保证清晰） */
+function svgImage(el, color){
+  const key = (el.getAttribute('class') || '') + '|' + color;
+  if (svgCache.has(key)) return svgCache.get(key);
+  const clone = el.cloneNode(true);
+  const cs = getComputedStyle(el);
+  const vb = (clone.getAttribute('viewBox') || '0 0 24 24').split(/\s+/).map(Number);
+  const S = 8;
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width', vb[2] * S);
+  clone.setAttribute('height', vb[3] * S);
+  clone.setAttribute('fill', cs.fill === 'none' ? 'none' : 'currentColor');
+  if (cs.stroke && cs.stroke !== 'none') clone.setAttribute('stroke', 'currentColor');
+  const markup = clone.outerHTML.replace(/currentColor/g, color);
+
+  const p = new Promise(res => {
+    const img = new Image();
+    img.onload = () => res(img);
+    img.onerror = () => res(null);
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup);
+  });
+  svgCache.set(key, p);
+  return p;
+}
+
+/** 预先把状态栏/锁屏元素换算成画布坐标与绘制指令 */
+async function buildChromeLayer(d, W, k){
+  const sr = screenEl.getBoundingClientRect();
+  const z = (sr.width / d.w) || 1;
+  const toC = r => ({
+    x: (r.left - sr.left) / z * k,
+    y: (r.top - sr.top) / z * k,
+    w: r.width / z * k,
+    h: r.height / z * k
+  });
+  const ops = [];
+
+  const sbColor = getComputedStyle(document.querySelector('.statusbar')).color;
+  for (const el of document.querySelectorAll('.sb-icons svg')){
+    const r = toC(el.getBoundingClientRect());
+    const img = await svgImage(el, sbColor);
+    if (img) ops.push(g => g.drawImage(img, r.x, r.y, r.w, r.h));
+  }
+
+  for (const el of [lockDate, lockTime]){
+    const r = toC(el.getBoundingClientRect());
+    const cs = getComputedStyle(el);
+    const text = el.textContent;
+    const size = parseFloat(cs.fontSize) * k;
+    const ls = (parseFloat(cs.letterSpacing) || 0) * k;
+    ops.push(g => {
+      g.fillStyle = cs.color;
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.font = `${cs.fontWeight} ${size}px ${cs.fontFamily}`;
+      if ('letterSpacing' in g) g.letterSpacing = ls + 'px';
+      g.fillText(text, r.x + r.w / 2, r.y + r.h / 2);
+      if ('letterSpacing' in g) g.letterSpacing = '0px';
+    });
+  }
+
+  for (const orb of document.querySelectorAll('.orb')){
+    const r = toC(orb.getBoundingClientRect());
+    const cs = getComputedStyle(orb);
+    const iconEl = orb.querySelector('svg');
+    const ir = iconEl ? toC(iconEl.getBoundingClientRect()) : null;
+    const icon = iconEl ? await svgImage(iconEl, cs.color) : null;
+    ops.push(g => {
+      g.fillStyle = cs.backgroundColor;
+      g.beginPath();
+      g.arc(r.x + r.w / 2, r.y + r.h / 2, r.w / 2, 0, Math.PI * 2);
+      g.fill();
+      if (icon && ir) g.drawImage(icon, ir.x, ir.y, ir.w, ir.h);
+    });
+  }
+
+  const hb = document.querySelector('.home-bar');
+  if (hb){
+    const r = toC(hb.getBoundingClientRect());
+    const cs = getComputedStyle(hb);
+    ops.push(g => { g.fillStyle = cs.backgroundColor; rrect(g, r.x, r.y, r.w, r.h, r.h / 2); g.fill(); });
+  }
+
+  return { draw(g){ for (const fn of ops) fn(g); } };
+}
+
+function downloadBlob(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+async function exportImage(){
+  const btn = $('exportImg');
+  if (btn.classList.contains('busy')) return;
+  btn.classList.add('busy');
+  try{
+    const { c, g, d, W, H, k } = exportCanvas();
+    if (!drawWallpaper(g, W, H)){ toast('壁纸还没加载完，稍后再试'); return; }
+    drawCutout(g, d, W, k);
+    if (state.lock){
+      const layer = await buildChromeLayer(d, W, k);
+      layer.draw(g);
+    }
+    const blob = await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('画布导出失败')), 'image/png'));
+    downloadBlob(blob, `wallpaper-${d.id}-${W}x${H}.png`);
+    toast(`已导出 ${W} × ${H} PNG`);
+  } catch(err){
+    console.error(err);
+    toast(err && err.name === 'SecurityError'
+      ? '跨域壁纸无法导出，请改用本地上传'
+      : '导出失败：' + (err.message || '未知错误'));
+  } finally {
+    btn.classList.remove('busy');
+  }
+}
+
+async function exportVideo(){
+  const v = mediaEl.querySelector('video');
+  if (!v){ toast('视频导出需要先选择视频壁纸'); return; }
+  if (typeof MediaRecorder === 'undefined'){ toast('当前浏览器不支持视频录制'); return; }
+  const btn = $('exportVid');
+  if (btn.classList.contains('busy')) return;
+  btn.classList.add('busy');
+
+  const { c, g, d, W, H, k } = exportCanvas();
+  const layer = state.lock ? await buildChromeLayer(d, W, k) : null;
+  c.style.cssText = 'position:fixed;left:-10000px;top:0;pointer-events:none';
+  document.body.appendChild(c);
+
+  const stream = c.captureStream(30);
+  const mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4']
+    .find(t => MediaRecorder.isTypeSupported(t)) || '';
+  const rec = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 9000000 } : undefined);
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+
+  try{
+    const started = new Promise(r => { rec.onstart = r; });
+    rec.start(200);
+    await Promise.race([started, new Promise(r => setTimeout(r, 1500))]);
+
+    const durMs = Math.min(Math.max(v.duration || 6, 3), 10) * 1000;
+    try { v.currentTime = 0; } catch(e){}
+    await v.play().catch(() => {});
+    const t0 = performance.now();
+    await new Promise(res => {
+      const tick = () => {
+        drawWallpaper(g, W, H);
+        drawCutout(g, d, W, k);
+        if (layer) layer.draw(g);
+        if (performance.now() - t0 < durMs) requestAnimationFrame(tick);
+        else res();
+      };
+      tick();
+    });
+    const stopped = new Promise(r => { rec.onstop = r; });
+    rec.stop();
+    await Promise.race([stopped, new Promise(r => setTimeout(r, 3000))]);
+
+    const blob = new Blob(chunks, { type: mime || 'video/webm' });
+    const ext = /mp4/.test(mime) ? 'mp4' : 'webm';
+    downloadBlob(blob, `wallpaper-${d.id}-${W}x${H}-${Math.round(durMs / 1000)}s.${ext}`);
+    toast(`已导出 ${Math.round(durMs / 1000)} 秒视频`);
+  } catch(err){
+    console.error(err);
+    toast('视频导出失败：' + (err.message || '未知错误'));
+  } finally {
+    btn.classList.remove('busy');
+    stream.getTracks().forEach(t => t.stop());
+    c.remove();
+  }
+}
+
 function tickClock(){
   const now = new Date();
   const hh = String(now.getHours()).padStart(2, '0');
@@ -841,6 +1093,10 @@ function bind(){
     applyGloss();
     save();
   });
+
+  /* --- 导出 --- */
+  $('exportImg').addEventListener('click', exportImage);
+  $('exportVid').addEventListener('click', exportVideo);
 
   /* --- 重置 --- */
   $('resetBtn').addEventListener('click', () => {
