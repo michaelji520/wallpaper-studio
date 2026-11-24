@@ -2,7 +2,7 @@
 
 在浏览器里 1:1 预览手机壁纸的在线工具：左边是一台按真机参数复刻的手机，右边是控制台。上传图片或视频当壁纸，换个环境背景，直接看效果。
 
-**在线体验**：<https://wallpaper-studio-12856.app.workbuddy.host/?sharecode=CBDIUCUIEE>
+**在线体验**：<https://wallpaper-studio.heihei2thesky.top>
 
 > 示例动态壁纸已随仓库提供（mp4 + webm 双源）；需要重新生成时执行 `bash scripts/make-assets.sh`。
 
