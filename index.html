@@ -32,8 +32,8 @@
 
     <div class="zoom-bar">
       <div class="zoom-btns">
-        <button class="zbtn" id="fitBtn" data-zoom="fit">适应</button>
-        <button class="zbtn" id="oneBtn" data-zoom="one">1:1</button>
+        <button class="zbtn" id="fitBtn" data-zoom="fit" title="适应窗口（快捷键 F）">适应</button>
+        <button class="zbtn" id="oneBtn" data-zoom="one" title="逻辑尺寸 1:1（快捷键 1）">1:1</button>
       </div>
       <div class="zoom-range">
         <input type="range" id="zoomRange" min="20" max="160" step="1" value="80" aria-label="缩放" />
@@ -43,81 +43,6 @@
   </header>
 
   <main class="stage" id="stage">
-    <div class="env" id="env"></div>
-    <div class="env-grain"></div>
-
-    <div class="canvas-area" id="canvasArea">
-      <div class="scaler" id="scaler">
-        <span class="btn-side act" aria-hidden="true"></span>
-        <span class="btn-side vup" aria-hidden="true"></span>
-        <span class="btn-side vdn" aria-hidden="true"></span>
-        <span class="btn-side pwr" aria-hidden="true"></span>
-        <span class="btn-side cc" aria-hidden="true"></span>
-
-        <div class="device" id="device">
-          <div class="bezel" id="bezel">
-            <div class="screen" id="screen">
-              <div class="media" id="media"></div>
-              <div class="vignette"></div>
-              <div class="gloss" id="gloss"></div>
-
-              <div class="chrome" id="chrome">
-                <div class="statusbar">
-                  <span class="sb-icons">
-                    <!-- 蜂窝信号：18×12pt，四根圆角柱 -->
-                    <svg class="sb-cell" viewBox="0 0 18 12" aria-hidden="true">
-                      <rect x="0" y="7.9" width="3.2" height="4.1" rx="1"/>
-                      <rect x="4.9" y="5.5" width="3.2" height="6.5" rx="1"/>
-                      <rect x="9.8" y="3" width="3.2" height="9" rx="1"/>
-                      <rect x="14.7" y="0" width="3.2" height="12" rx="1"/>
-                    </svg>
-                    <!-- Wi-Fi：17×12pt，两段圆弧 + 圆点 -->
-                    <svg class="sb-wifi" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true">
-                      <path d="M1.3 4.35a10.2 10.2 0 0 1 14.4 0"/>
-                      <path d="M4.05 7.3a6.4 6.4 0 0 1 8.9 0"/>
-                      <circle cx="8.5" cy="10.55" r="1.1" fill="currentColor" stroke="none"/>
-                    </svg>
-                    <!-- 电池：27×13pt，外框 38% 不透明 + 实心电量 + 电极 -->
-                    <svg class="sb-batt" viewBox="0 0 27 13" aria-hidden="true">
-                      <rect x="0.55" y="0.55" width="23.9" height="11.9" rx="3.7" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".42"/>
-                      <rect x="2.4" y="2.4" width="15" height="8.2" rx="2.1" fill="currentColor"/>
-                      <rect x="25.4" y="4.4" width="1.3" height="4.2" rx=".65" fill="currentColor" opacity=".42"/>
-                    </svg>
-                  </span>
-                </div>
-
-                <div class="lockscreen" id="lockscreen">
-                  <div class="lock-main">
-                    <div class="lock-date" id="lockDate">11月20日 星期五</div>
-                    <div class="lock-time" id="lockTime">9:41</div>
-                  </div>
-                  <div class="lock-orbs">
-                    <span class="orb">
-                      <!-- 手电筒 flashlight.off.fill -->
-                      <svg viewBox="0 0 24 24" class="ic-flash" aria-hidden="true">
-                        <path d="M8.3 3.3c0-.5.4-.9.9-.9h5.6c.5 0 .9.4.9.9v.2l-1.16 5.5a.86.86 0 0 1-.84.68h-3.4a.86.86 0 0 1-.84-.68L8.3 3.5v-.2Z"/>
-                        <path d="M10.3 9.9h3.4v8.6a1.7 1.7 0 0 1-3.4 0V9.9Z"/>
-                      </svg>
-                    </span>
-                    <span class="orb">
-                      <!-- 相机 camera.fill -->
-                      <svg viewBox="0 0 24 24" class="ic-cam" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M2.2 17.6V9.4a2.6 2.6 0 0 1 2.6-2.6h2.5l1.2-2.1c.2-.4.7-.7 1.1-.7h2.8c.4 0 .9.3 1.1.7l1.2 2.1h2.5a2.6 2.6 0 0 1 2.6 2.6v8.2a2.6 2.6 0 0 1-2.6 2.6H4.8a2.6 2.6 0 0 1-2.6-2.6Zm9.8-1a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8Z"/>
-                      </svg>
-                    </span>
-                  </div>
-                </div>
-
-                <div class="home-bar"></div>
-              </div>
-
-              <div class="cutout" id="cutout" data-cutout="island"><span class="cam"></span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <aside class="panel">
       <div class="panel-head">
         <div class="panel-title"><b>控制台</b><span>Studio Controls</span></div>
@@ -223,17 +148,91 @@
             <span class="switch"><input type="checkbox" id="glossToggle" checked /><i></i></span>
           </label>
 
-          <div class="hint">
-            <span>快捷键</span>
-            <em><kbd>F</kbd> 适应 · <kbd>1</kbd> 1:1 · <kbd>L</kbd> 锁屏</em>
-          </div>        </section>
+        </section>
 
       </div>
     </aside>
+    <div class="viewport" id="viewport">
+      <div class="env" id="env"></div>
+      <div class="env-grain"></div>
 
-    <div class="drop-veil" id="dropVeil"><span>松开以应用壁纸</span></div>
+      <div class="canvas-area" id="canvasArea">
+        <div class="scaler" id="scaler">
+          <span class="btn-side act" aria-hidden="true"></span>
+          <span class="btn-side vup" aria-hidden="true"></span>
+          <span class="btn-side vdn" aria-hidden="true"></span>
+          <span class="btn-side pwr" aria-hidden="true"></span>
+          <span class="btn-side cc" aria-hidden="true"></span>
 
-    <div class="toast" id="toast"></div>
+          <div class="device" id="device">
+            <div class="bezel" id="bezel">
+              <div class="screen" id="screen">
+                <div class="media" id="media"></div>
+                <div class="vignette"></div>
+                <div class="gloss" id="gloss"></div>
+
+                <div class="chrome" id="chrome">
+                  <div class="statusbar">
+                    <span class="sb-icons">
+                      <!-- 蜂窝信号：18×12pt，四根圆角柱 -->
+                      <svg class="sb-cell" viewBox="0 0 18 12" aria-hidden="true">
+                        <rect x="0" y="7.9" width="3.2" height="4.1" rx="1"/>
+                        <rect x="4.9" y="5.5" width="3.2" height="6.5" rx="1"/>
+                        <rect x="9.8" y="3" width="3.2" height="9" rx="1"/>
+                        <rect x="14.7" y="0" width="3.2" height="12" rx="1"/>
+                      </svg>
+                      <!-- Wi-Fi：17×12pt，两段圆弧 + 圆点 -->
+                      <svg class="sb-wifi" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" aria-hidden="true">
+                        <path d="M1.3 4.35a10.2 10.2 0 0 1 14.4 0"/>
+                        <path d="M4.05 7.3a6.4 6.4 0 0 1 8.9 0"/>
+                        <circle cx="8.5" cy="10.55" r="1.1" fill="currentColor" stroke="none"/>
+                      </svg>
+                      <!-- 电池：27×13pt，外框 38% 不透明 + 实心电量 + 电极 -->
+                      <svg class="sb-batt" viewBox="0 0 27 13" aria-hidden="true">
+                        <rect x="0.55" y="0.55" width="23.9" height="11.9" rx="3.7" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".42"/>
+                        <rect x="2.4" y="2.4" width="15" height="8.2" rx="2.1" fill="currentColor"/>
+                        <rect x="25.4" y="4.4" width="1.3" height="4.2" rx=".65" fill="currentColor" opacity=".42"/>
+                      </svg>
+                    </span>
+                  </div>
+
+                  <div class="lockscreen" id="lockscreen">
+                    <div class="lock-main">
+                      <div class="lock-date" id="lockDate">11月20日 星期五</div>
+                      <div class="lock-time" id="lockTime">9:41</div>
+                    </div>
+                    <div class="lock-orbs">
+                      <span class="orb">
+                        <!-- 手电筒 flashlight.off.fill -->
+                        <svg viewBox="0 0 24 24" class="ic-flash" aria-hidden="true">
+                          <path d="M8.3 3.3c0-.5.4-.9.9-.9h5.6c.5 0 .9.4.9.9v.2l-1.16 5.5a.86.86 0 0 1-.84.68h-3.4a.86.86 0 0 1-.84-.68L8.3 3.5v-.2Z"/>
+                          <path d="M10.3 9.9h3.4v8.6a1.7 1.7 0 0 1-3.4 0V9.9Z"/>
+                        </svg>
+                      </span>
+                      <span class="orb">
+                        <!-- 相机 camera.fill -->
+                        <svg viewBox="0 0 24 24" class="ic-cam" aria-hidden="true">
+                          <path fill-rule="evenodd" d="M2.2 17.6V9.4a2.6 2.6 0 0 1 2.6-2.6h2.5l1.2-2.1c.2-.4.7-.7 1.1-.7h2.8c.4 0 .9.3 1.1.7l1.2 2.1h2.5a2.6 2.6 0 0 1 2.6 2.6v8.2a2.6 2.6 0 0 1-2.6 2.6H4.8a2.6 2.6 0 0 1-2.6-2.6Zm9.8-1a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8Z"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="home-bar"></div>
+                </div>
+
+                <div class="cutout" id="cutout" data-cutout="island"><span class="cam"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="drop-veil" id="dropVeil"><span>松开以应用壁纸</span></div>
+
+      <div class="toast" id="toast"></div>
+    </div>
   </main>
 </div>
 
