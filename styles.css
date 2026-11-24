@@ -250,7 +250,7 @@ svg{display:block}
 .sb-icons{display:flex;align-items:flex-end;gap:6px}
 .sb-icons svg{display:block;fill:currentColor}
 .sb-cell{width:18px;height:12px}
-.sb-wifi{width:17px;height:12px}
+.sb-wifi{width:15.6px;height:12.1px}
 .sb-batt{width:27px;height:13px}
 
 .lockscreen{
@@ -279,7 +279,7 @@ svg{display:block}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
   color:rgba(255,255,255,.86);
 }
-.orb svg{width:24px;height:24px}
+.orb svg{width:24px;height:24px;fill:currentColor}
 
 .device.is-android .lockscreen{align-items:flex-start;text-align:left;padding:calc(var(--dh) * .13) calc(var(--dw) * .075) calc(var(--dh) * .045)}
 .device.is-android .lock-main{align-items:flex-start}
