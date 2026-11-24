@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Wallpaper Studio · 壁纸预览台</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230b0b0d'/%3E%3Crect x='9' y='5' width='14' height='22' rx='4' fill='none' stroke='%23e0c9a6' stroke-width='1.6'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"><i></i></span>
+      <span class="brand-text"><b>Wallpaper Studio</b><em>壁纸预览台</em></span>
+    </div>
+
+    <div class="readout">
+      <span id="readoutDevice">iPhone 18 Pro Max</span>
+      <span class="ro-size ro-group"><i class="dot"></i><span class="mono" id="readoutSize">440 × 956</span></span>
+      <i class="dot"></i>
+      <span class="mono" id="readoutScale">80%</span>
+    </div>
+
+    <div class="zoom-bar">
+      <div class="zoom-btns">
+        <button class="zbtn" id="fitBtn" data-zoom="fit">适应</button>
+        <button class="zbtn" id="oneBtn" data-zoom="one">1:1</button>
+      </div>
+      <div class="zoom-range">
+        <input type="range" id="zoomRange" min="20" max="160" step="1" value="80" aria-label="缩放" />
+        <output id="zoomOut" class="mono">80%</output>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="env" id="env"></div>
+    <div class="env-grain"></div>
+
+    <div class="canvas-area" id="canvasArea">
+      <div class="scaler" id="scaler">
+        <span class="btn-side act" aria-hidden="true"></span>
+        <span class="btn-side vup" aria-hidden="true"></span>
+        <span class="btn-side vdn" aria-hidden="true"></span>
+        <span class="btn-side pwr" aria-hidden="true"></span>
+        <span class="btn-side cc" aria-hidden="true"></span>
+
+        <div class="device" id="device">
+          <div class="bezel" id="bezel">
+            <div class="screen" id="screen">
+              <div class="media" id="media"></div>
+              <div class="vignette"></div>
+              <div class="gloss" id="gloss"></div>
+
+              <div class="chrome" id="chrome">
+                <div class="statusbar">
+                  <span class="sb-icons">
+                    <svg viewBox="0 0 18 12" aria-hidden="true"><rect x="0" y="8.5" width="3" height="3.5" rx="1"/><rect x="5" y="6" width="3" height="6" rx="1"/><rect x="10" y="3.4" width="3" height="8.6" rx="1"/><rect x="15" y="0.6" width="3" height="11.4" rx="1"/></svg>
+                    <svg viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M1 4.3a10.4 10.4 0 0 1 14 0"/><path d="M3.7 7.1a6.6 6.6 0 0 1 8.6 0"/><circle cx="8" cy="10" r="1" fill="currentColor" stroke="none"/></svg>
+                    <svg viewBox="0 0 25 12" aria-hidden="true"><rect x="0.6" y="0.6" width="20" height="10.8" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".45"/><rect x="2.6" y="2.6" width="14.5" height="6.8" rx="1.9" fill="currentColor"/><path d="M22.8 4.2v3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".45"/></svg>
+                  </span>
+                </div>
+
+                <div class="lockscreen" id="lockscreen">
+                  <div class="lock-main">
+                    <div class="lock-date" id="lockDate">11月20日 星期五</div>
+                    <div class="lock-time" id="lockTime">9:41</div>
+                  </div>
+                  <div class="lock-orbs">
+                    <span class="orb">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9.5 3.5h5l-.9 5.5h-3.2l-.9-5.5Z"/><path d="M11.2 9v9.2a1.35 1.35 0 0 0 2.7 0V9"/></svg>
+                    </span>
+                    <span class="orb">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="3.2" y="7" width="17.6" height="12.6" rx="3.4"/><circle cx="12" cy="13.3" r="3.4"/><path d="M8.6 7l1.3-2.2h4.2L15.4 7"/></svg>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="home-bar"></div>
+              </div>
+
+              <div class="cutout" id="cutout" data-cutout="island"><span class="cam"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <div class="panel-head">
+        <div class="panel-title"><b>控制台</b><span>Studio Controls</span></div>
+        <button class="mini" id="resetBtn">重置</button>
+      </div>
+
+      <div class="panel-scroll">
+
+        <section class="sec">
+          <div class="sec-head"><b>设备</b><i>01 / DEVICE</i></div>
+
+          <div class="seg" id="osSeg" style="--n:2;--i:0">
+            <span class="seg-thumb"></span>
+            <button data-os="ios" class="on">iOS</button>
+            <button data-os="android">Android</button>
+          </div>
+
+          <div class="select-wrap">
+            <select id="deviceSelect" class="select" aria-label="选择机型"></select>
+            <svg class="chev" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5 6 6.5l5-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+
+          <div class="meta" id="deviceMeta">6.9″ · 440 × 956 pt · 78.0 × 163.4 mm</div>
+
+          <div class="label-row"><span>屏幕开孔</span><i id="cutoutLabel">灵动岛</i></div>
+          <div class="seg small" id="cutoutSeg" style="--n:4;--i:0">
+            <span class="seg-thumb"></span>
+            <button data-cutout="island" class="on">灵动岛</button>
+            <button data-cutout="notch">刘海</button>
+            <button data-cutout="waterdrop">水滴</button>
+            <button data-cutout="punch">挖孔</button>
+          </div>
+        </section>
+
+        <section class="sec">
+          <div class="sec-head"><b>壁纸</b><i>02 / WALLPAPER</i></div>
+
+          <label class="drop" id="dropZone">
+            <input type="file" id="fileInput" accept="image/*,video/*" hidden />
+            <svg class="drop-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.6" cy="9.6" r="1.6"/><path d="M3.6 17.4 9 12.6l3.4 3 2.8-2.4 5.2 4.2"/>
+            </svg>
+            <span class="drop-text">
+              <b class="drop-title">拖入或点击上传</b>
+              <em class="drop-sub">JPG / PNG / WEBP / MP4 · 视频静音循环</em>
+            </span>
+          </label>
+
+          <div class="url-row">
+            <input class="input" id="urlInput" type="text" placeholder="粘贴图片 / 视频 URL" spellcheck="false" />
+            <button class="btn" id="urlBtn">应用</button>
+          </div>
+
+          <div class="label-row">
+            <span>预设壁纸</span>
+            <span class="lr-right"><i id="mediaName">沙丘</i><button class="link" id="clearMedia">清除</button></span>
+          </div>
+          <div class="presets" id="presets"></div>
+
+          <div class="video-tools" id="videoTools" hidden>
+            <button class="mini wide" id="videoToggle">暂停视频</button>
+            <label class="mini-check"><input type="checkbox" id="loopToggle" checked /><span>循环</span></label>
+          </div>
+
+          <div class="seg small mt10" id="fitSeg" style="--n:2;--i:0">
+            <span class="seg-thumb"></span>
+            <button data-fit="cover" class="on">填充</button>
+            <button data-fit="contain">适应</button>
+          </div>
+        </section>
+
+        <section class="sec">
+          <div class="sec-head"><b>环境</b><i>03 / STAGE</i></div>
+          <div class="swatches" id="swatches">
+            <button class="swatch swatch-add" id="envUploadBtn" title="上传背景图" aria-label="上传背景图">
+              <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.6v10.8M1.6 7h10.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </button>
+            <input type="file" id="envFile" accept="image/*" hidden />
+          </div>
+
+          <div class="slider-row">
+            <span>虚化</span>
+            <input type="range" id="blurRange" min="0" max="40" step="1" value="0" />
+            <b class="mono" id="blurVal">0</b>
+          </div>
+          <div class="slider-row">
+            <span>亮度</span>
+            <input type="range" id="dimRange" min="30" max="120" step="1" value="100" />
+            <b class="mono" id="dimVal">100%</b>
+          </div>
+        </section>
+
+        <section class="sec last">
+          <div class="sec-head"><b>显示</b><i>04 / DISPLAY</i></div>
+
+          <label class="row">
+            <span>锁屏界面<em>时间 · 状态栏 · 小白条</em></span>
+            <span class="switch"><input type="checkbox" id="lockToggle" checked /><i></i></span>
+          </label>
+
+          <label class="row">
+            <span>屏幕反光<em>玻璃高光与暗角</em></span>
+            <span class="switch"><input type="checkbox" id="glossToggle" checked /><i></i></span>
+          </label>
+
+          <div class="hint">
+            <span>快捷键</span>
+            <em><kbd>F</kbd> 适应 · <kbd>1</kbd> 1:1 · <kbd>L</kbd> 锁屏</em>
+          </div>        </section>
+
+      </div>
+    </aside>
+
+    <div class="drop-veil" id="dropVeil"><span>松开以应用壁纸</span></div>
+
+    <div class="toast" id="toast"></div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
