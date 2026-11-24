@@ -4,7 +4,7 @@
 
 **在线体验**：<https://wallpaper-studio-12856.app.workbuddy.host/?sharecode=CBDIUCUIEE>
 
-> 示例动态壁纸是二进制素材，不放进仓库，克隆后执行一次 `bash scripts/make-assets.sh` 生成。
+> 示例动态壁纸已随仓库提供（mp4 + webm 双源）；需要重新生成时执行 `bash scripts/make-assets.sh`。
 
 ## 功能
 
@@ -34,12 +34,9 @@
 
 ## 本地运行
 
-纯静态站点，没有构建步骤，也没有依赖。先补齐示例素材，再打开页面：
+纯静态站点，没有构建步骤，也没有依赖：
 
 ```bash
-# 0. 生成示例动态壁纸（需要 ffmpeg；不生成也不影响其它功能）
-bash scripts/make-assets.sh
-
 # 方式一：直接打开
 open index.html
 
@@ -54,8 +51,8 @@ python3 -m http.server 8765
 index.html            页面结构
 styles.css            样式（含 squircle 裁切层与响应式）
 app.js                设备数据、圆角路径生成、壁纸渲染与交互
-assets/               示例动态壁纸（mp4 + webm 双源，脚本生成）
-scripts/make-assets.sh  用 ffmpeg 生成示例视频
+assets/               示例动态壁纸（mp4 + webm 双源）
+scripts/make-assets.sh  重新生成示例视频（可选）
 ```
 
 预设壁纸是运行时用 Canvas 程序化生成的（渐变 + 平滑径向光斑 + 暗角 + 颗粒），不依赖任何图片文件。

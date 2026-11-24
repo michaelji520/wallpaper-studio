@@ -1,10 +1,6 @@
 .DS_Store
 node_modules/
 
-# 二进制示例素材，用 scripts/make-assets.sh 生成
-assets/*.mp4
-assets/*.webm
-
 # 本地工具产物
 .workbuddy/
 .wbapp_*.genie
