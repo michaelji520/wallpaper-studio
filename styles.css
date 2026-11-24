@@ -74,7 +74,7 @@ svg{display:block}
 
 .env{
   position:absolute;inset:-60px;z-index:0;
-  background:radial-gradient(120% 90% at 50% 0%,#2b2c31 0%,#101114 55%,#08090b 100%);
+  background:radial-gradient(120% 95% at 50% 5%,#f6f4f0 0%,#ded9d1 55%,#c5bfb5 100%);
   background-size:cover;background-position:center;
   transform:scale(1.02);
   transition:filter .18s linear,transform .18s linear;

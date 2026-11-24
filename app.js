@@ -22,8 +22,8 @@ const CUTOUTS = ['island','notch','waterdrop','punch'];
 const CUTOUT_LABEL = { island:'灵动岛', notch:'刘海', waterdrop:'水滴', punch:'挖孔' };
 
 const ENV_PRESETS = [
-  { id:'graphite', name:'石墨', css:'radial-gradient(120% 90% at 50% 0%,#2c2d32 0%,#111214 58%,#08090b 100%)' },
   { id:'mist',     name:'雾白', css:'radial-gradient(120% 95% at 50% 5%,#f6f4f0 0%,#ded9d1 55%,#c5bfb5 100%)' },
+  { id:'graphite', name:'石墨', css:'radial-gradient(120% 90% at 50% 0%,#2c2d32 0%,#111214 58%,#08090b 100%)' },
   { id:'clay',     name:'陶土', css:'radial-gradient(100% 80% at 28% 18%,#c07a5f 0%,#7d4334 48%,#3a1f18 100%)' },
   { id:'ocean',    name:'深海', css:'radial-gradient(90% 75% at 22% 10%,#1a5768 0%,#0a2028 55%,#050f14 100%)' },
   { id:'aurora',   name:'极光', css:'radial-gradient(75% 65% at 72% 18%,#4a3280 0%,#221a44 45%,#0a0913 100%)' },
@@ -96,7 +96,7 @@ const DEFAULT_STATE = {
   zoom:.8,
   fit:'cover',
   media:{ kind:'preset', presetId:'dune', name:'沙丘' },
-  env:{ mode:'preset', presetId:'graphite', src:null, blur:0, dim:100 },
+  env:{ mode:'preset', presetId:'mist', src:null, blur:0, dim:100 },
   lock:true,
   gloss:true,
   loop:true
