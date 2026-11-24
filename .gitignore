@@ -11,3 +11,4 @@ assets/*.webm
 dist/
 screenshots/
 docs/
+.cf-token

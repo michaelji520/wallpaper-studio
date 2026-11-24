@@ -234,14 +234,17 @@ svg{display:block}
 .screen.no-chrome .chrome{display:none}
 
 .statusbar{
-  position:absolute;top:calc(var(--dw) * .031);right:calc(var(--dw) * .058);
+  position:absolute;
+  top:var(--sb-top,20px);right:var(--sb-right,24px);
   display:flex;align-items:center;opacity:.94;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.3));
 }
-.sb-icons{display:flex;align-items:flex-end;gap:calc(var(--dw) * .016)}
-.sb-icons svg{height:calc(var(--dw) * .034);width:auto;fill:currentColor}
-.sb-icons svg:nth-child(2){width:calc(var(--dw) * .045);height:auto}
-.sb-icons svg:nth-child(3){width:calc(var(--dw) * .066);height:auto}
+/* 状态栏图标用 iOS 固定点值，不随屏宽缩放 */
+.sb-icons{display:flex;align-items:flex-end;gap:6px}
+.sb-icons svg{display:block;fill:currentColor}
+.sb-cell{width:18px;height:12px}
+.sb-wifi{width:17px;height:12px}
+.sb-batt{width:27px;height:13px}
 
 .lockscreen{
   position:absolute;inset:0;
@@ -262,14 +265,14 @@ svg{display:block}
 }
 .lock-orbs{display:flex;justify-content:space-between;width:100%;padding:0 calc(var(--dw) * .066)}
 .orb{
-  width:calc(var(--dw) * .128);height:calc(var(--dw) * .128);border-radius:50%;
+  width:50px;height:50px;border-radius:50%;
   display:grid;place-items:center;
   background:rgba(255,255,255,.14);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
   color:rgba(255,255,255,.86);
 }
-.orb svg{width:calc(var(--dw) * .058);height:auto}
+.orb svg{width:24px;height:24px}
 
 .device.is-android .lockscreen{align-items:flex-start;text-align:left;padding:calc(var(--dh) * .13) calc(var(--dw) * .075) calc(var(--dh) * .045)}
 .device.is-android .lock-main{align-items:flex-start}

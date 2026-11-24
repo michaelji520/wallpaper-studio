@@ -379,6 +379,12 @@ function applyCutout(){
   cutoutEl.dataset.cutout = state.cutout;
   cutoutLabel.textContent = CUTOUT_LABEL[state.cutout] || '—';
   setSeg(cutoutSeg, Math.max(0, CUTOUTS.indexOf(state.cutout)), 4);
+
+  // 状态栏垂直位置按开孔类型对齐（灵动岛 54pt / 刘海 47pt 状态栏）
+  const d = getDevice();
+  const sbTop = { island: 22, notch: 17, punch: 13, waterdrop: 11 }[state.cutout] ?? 18;
+  device.style.setProperty('--sb-top', sbTop + 'px');
+  device.style.setProperty('--sb-right', d.os === 'android' ? '16px' : '24px');
 }
 
 function computeFit(){
