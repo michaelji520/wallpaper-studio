@@ -193,6 +193,16 @@ const WALLPAPERS = [
     ]
   },
   {
+    // 中等亮度：让锁屏时钟能透出壁纸（on-glass 档），默认壁纸
+    id:'morning', name:'晨霭', blend:'source-over', grain:.04, vig:.16,
+    stops:['#8f97a6','#767f8f','#5a6371'],
+    blobs:[
+      { x:.32, y:.16, r:.86, c:[206,215,228], a:.52 },
+      { x:.84, y:.60, r:.74, c:[142,158,182], a:.26 },
+      { x:.18, y:.92, r:.68, c:[96,108,128],  a:.24 }
+    ]
+  },
+  {
     id:'dawn', name:'晨曦', blend:'source-over', grain:.05, vig:.14,
     stops:['#fdeedd','#f9c6a8','#e79aa0','#8a7099'],
     blobs:[
@@ -228,7 +238,7 @@ const DEFAULT_STATE = {
   fitMode:true,
   zoom:.8,
   fit:'cover',
-  media:{ kind:'preset', presetId:'dune', name:'沙丘' },
+  media:{ kind:'preset', presetId:'morning', name:'晨霭' },
   env:{ mode:'preset', presetId:'mist', src:null, blur:0, dim:100 },
   lock:true,
   gloss:true,
