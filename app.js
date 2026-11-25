@@ -534,7 +534,7 @@ function applyCutout(){
   const d = getDevice();
   const sbTop = { island: 22, notch: 17, punch: 13, waterdrop: 11 }[state.cutout] ?? 18;
   device.style.setProperty('--sb-top', sbTop + 'px');
-  device.style.setProperty('--sb-right', d.os === 'android' ? '16px' : '24px');
+  device.style.setProperty('--sb-right', d.os === 'android' ? '16px' : '26px');
 }
 
 function computeFit(){
@@ -1050,100 +1050,6 @@ async function buildChromeLayer(d, k){
     });
   }
 
-  // ---- 锁屏小组件：天气 / 活动环 / 世界时钟 ----
-  if (glass){
-    const resolve = el => el ? getComputedStyle(el).color : 'rgba(255,255,255,.95)';
-    const drawText = (el, opts = {}) => {
-      if (!el) return;
-      const r = toC(el.getBoundingClientRect());
-      const cs = getComputedStyle(el);
-      const txt = el.textContent;
-      const size = parseFloat(cs.fontSize) * k;
-      const col = cs.color;
-      const weight = cs.fontWeight;
-      const fam = cs.fontFamily;
-      ops.push(g => {
-        g.save();
-        g.fillStyle = col;
-        g.textAlign = opts.align || 'left';
-        g.textBaseline = opts.baseline || 'alphabetic';
-        g.font = `${weight} ${size}px ${fam}`;
-        const x = opts.align === 'center' ? r.x + r.w / 2 : r.x;
-        const y = opts.baseline === 'middle' ? r.y + r.h / 2 : r.y + r.h * 0.82;
-        g.fillText(txt, x, y);
-        g.restore();
-      });
-    };
-
-    // 天气：图标 + 温度 + 两行小字
-    const wIcon = document.querySelector('.lw-wicon');
-    if (wIcon){
-      const r = toC(wIcon.getBoundingClientRect());
-      const size = parseFloat(getComputedStyle(wIcon).fontSize) * k;
-      ops.push(g => {
-        g.save();
-        g.font = `${size}px "Apple Color Emoji", sans-serif`;
-        g.textAlign = 'left'; g.textBaseline = 'middle';
-        g.fillText('☁️', r.x, r.y + r.h / 2);
-        g.restore();
-      });
-    }
-    drawText(document.querySelector('.lw-wrow b'), { baseline: 'middle' });
-    drawText(document.querySelector('.lw-sub'));
-    drawText(document.querySelector('.lw-range'));
-
-    // 活动环
-    const ringEl = document.querySelector('.lw-ring');
-    if (ringEl){
-      const r = toC(ringEl.getBoundingClientRect());
-      const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
-      const rad = r.w * 0.43;
-      const lwSt = Math.max(1, r.w * 0.07);
-      const ringCol = resolve(ringEl);
-      ops.push(g => {
-        g.save();
-        g.lineCap = 'round';
-        g.beginPath(); g.arc(cx, cy, rad, 0, Math.PI * 2);
-        g.strokeStyle = ringCol;
-        g.globalAlpha = .22; g.lineWidth = lwSt; g.stroke();
-        g.globalAlpha = 1;
-        g.beginPath();
-        g.arc(cx, cy, rad, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * 0.69);
-        g.strokeStyle = ringCol; g.lineWidth = lwSt; g.stroke();
-        g.restore();
-      });
-      drawText(document.querySelector('.lw-ring b'), { align: 'center', baseline: 'middle' });
-      drawText(document.querySelector('.lw-ringsub'), { align: 'center', baseline: 'middle' });
-    }
-
-    // 世界时钟：玻璃圆底 + 时间
-    const clkEl = document.querySelector('.lw-clock');
-    if (clkEl){
-      const r = toC(clkEl.getBoundingClientRect());
-      const cx = r.x + r.w / 2, cy = r.y + r.h / 2, rad = r.w / 2;
-      const rim = Math.max(1, rad * 0.045);
-      const tintA = 0.02 + gk * 0.12;
-      const rimA = onLight ? .55 : .28;
-      const blurPx = Math.max(2, rad * 0.42);
-      ops.push(g => {
-        g.save();
-        g.beginPath(); g.arc(cx, cy, rad - rim / 2, 0, Math.PI * 2); g.clip();
-        if ('filter' in g) g.filter = `blur(${blurPx}px)`;
-        drawWallpaper(g, SW, SH);
-        if ('filter' in g) g.filter = 'none';
-        g.fillStyle = `rgba(255,255,255,${tintA.toFixed(3)})`;
-        g.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
-        g.restore();
-        g.beginPath(); g.arc(cx, cy, rad - rim / 2, 0, Math.PI * 2);
-        g.strokeStyle = `rgba(255,255,255,${rimA})`;
-        g.lineWidth = rim; g.stroke();
-      });
-      drawText(document.querySelector('.lw-cicon'), { align: 'center', baseline: 'middle' });
-      drawText(document.querySelector('.lw-clock b'), { align: 'center', baseline: 'middle' });
-      drawText(document.querySelector('.lw-clock i'), { align: 'center', baseline: 'middle' });
-    }
-  }
-
   for (const orb of document.querySelectorAll('.orb')){
     const r = toC(orb.getBoundingClientRect());
     const cs = getComputedStyle(orb);
@@ -1376,19 +1282,11 @@ async function exportVideo(){
   }
 }
 
-/** 锁屏时间按字符数缩放：5 位（22:46）比 4 位（9:41）窄一档，避免撑满屏幕 */
-function fitClockSize(){
-  const len = (lockTime.textContent || '').length;
-  const k = len <= 4 ? 1 : len === 5 ? 0.88 : 0.78;
-  lockTime.style.fontSize = `calc(var(--dw) * ${(0.248 * k).toFixed(4)})`;
-}
-
 function tickClock(){
   const now = new Date();
-  const hh = String(now.getHours());  // 不补零，和 iOS 一致（9:41 而非 09:41）
+  const hh = String(now.getHours()).padStart(2, '0');
   const mm = String(now.getMinutes()).padStart(2, '0');
   lockTime.textContent = hh + ':' + mm;
-  fitClockSize();
   const wd = ['日','一','二','三','四','五','六'][now.getDay()];
   lockDate.textContent = `${now.getMonth() + 1}月${now.getDate()}日 星期${wd}`;
 }
