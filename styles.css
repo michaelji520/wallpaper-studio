@@ -275,6 +275,62 @@ svg{display:block}
   text-shadow:0 2px 26px rgba(0,0,0,.32);
   font-feature-settings:"tnum";
 }
+/* ---------- 锁屏小组件（天气 / 活动环 / 世界时钟） ---------- */
+.lock-widgets{
+  position:absolute;left:0;right:0;
+  top:calc(var(--dh) * .245);
+  height:calc(var(--dw) * .18);
+  color:inherit;
+  pointer-events:none;
+  text-shadow:0 1px 10px rgba(0,0,0,.28);
+}
+.device.is-android .lock-widgets{display:none}
+
+.lw{position:absolute}
+.lw b{font-weight:600}
+
+/* 天气：纯文字，左对齐 */
+.lw-weather{left:calc(var(--dw) * .047);top:0;text-align:left}
+.lw-wrow{display:flex;align-items:center;gap:calc(var(--dw) * .012)}
+.lw-wicon{font-size:calc(var(--dw) * .046);line-height:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.3))}
+.lw-wrow b{font-size:calc(var(--dw) * .05);font-weight:500;line-height:1;letter-spacing:.01em}
+.lw-sub{font-size:calc(var(--dw) * .028);margin-top:calc(var(--dw) * .008);opacity:.95}
+.lw-range{font-size:calc(var(--dw) * .026);margin-top:calc(var(--dw) * .004);opacity:.88}
+
+/* 活动环 */
+.lw-ring{
+  left:calc(var(--dw) * .545);top:calc(var(--dw) * .012);
+  width:calc(var(--dw) * .115);height:calc(var(--dw) * .115);
+  display:grid;place-items:center;
+}
+.lw-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.lw-ring-bg{fill:none;stroke:currentColor;stroke-width:7;opacity:.22}
+.lw-ring-fg{fill:none;stroke:currentColor;stroke-width:7;stroke-linecap:round;
+  stroke-dasharray:270;stroke-dashoffset:84}
+.lw-ring b{font-size:calc(var(--dw) * .038);line-height:1;font-weight:500}
+.lw-ringsub{
+  position:absolute;bottom:calc(var(--dw) * -.032);left:50%;transform:translateX(-50%);
+  font-size:calc(var(--dw) * .022);opacity:.85;white-space:nowrap;
+}
+
+/* 世界时钟：圆形玻璃底板 */
+.lw-clock{
+  right:calc(var(--dw) * .095);top:0;
+  width:calc(var(--dw) * .115);height:calc(var(--dw) * .115);
+  border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(120% 120% at 34% 18%,
+    rgba(255,255,255, calc(.05 + var(--glass-k,.6) * .14)) 0%,
+    rgba(255,255,255, calc(.02 + var(--glass-k,.6) * .07)) 100%);
+  backdrop-filter:blur(calc(12px + var(--glass-k,.6) * 16px)) saturate(170%);
+  -webkit-backdrop-filter:blur(calc(12px + var(--glass-k,.6) * 16px)) saturate(170%);
+  border:.5px solid rgba(255,255,255,.28);
+  text-shadow:0 1px 6px rgba(0,0,0,.22);
+}
+.lw-cicon{font-size:calc(var(--dw) * .022);line-height:1;margin-bottom:calc(var(--dw) * .004);opacity:.9}
+.lw-clock b{font-size:calc(var(--dw) * .034);line-height:1;font-weight:500;letter-spacing:-.01em}
+.lw-clock i{font-style:normal;font-size:calc(var(--dw) * .019);opacity:.85;margin-top:calc(var(--dw) * .003)}
+
 .lock-orbs{display:flex;justify-content:space-between;width:100%;padding:0 calc(var(--dw) * .066)}
 .orb{
   width:50px;height:50px;border-radius:50%;
