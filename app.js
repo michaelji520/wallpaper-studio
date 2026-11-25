@@ -30,6 +30,122 @@ const DEVICES = [
 const CUTOUTS = ['island','notch','waterdrop','punch'];
 const CUTOUT_LABEL = { island:'灵动岛', notch:'刘海', waterdrop:'水滴', punch:'挖孔' };
 
+/* ============================================================
+   程序化织物/材质纹理（512² 无缝平铺）
+   逐像素生成，不依赖外部图片；斜纹/经纬周期都能整除 512，保证接缝不可见
+   ============================================================ */
+
+const TEX_SIZE = 512;
+const TEX_SPECS = [
+  // 牛仔布：靛蓝斜纹（3/1 twill）+ 细密经纬 + 棉絮亮点
+  { id:'denim', name:'牛仔布', base:[44,62,88],
+    twill:{ period:6, amp:.19 }, warp:{ period:3, amp:-.055 },
+    noise:.17, speckle:{ at:.986, add:.42 } },
+  // 亚麻：米色，经纬交错更明显，纤维细噪
+  { id:'linen', name:'亚麻', base:[201,190,168],
+    warp:{ period:2, amp:-.05 }, weft:{ period:2, amp:-.038 },
+    noise:.085, speckle:{ at:.9975, add:.20 } },
+  // 帆布：卡其粗织，经纬 4px
+  { id:'canvas', name:'帆布', base:[166,150,124],
+    warp:{ period:4, amp:-.075 }, weft:{ period:4, amp:-.062 },
+    noise:.135 },
+  // 皮革：深棕，低频斑块 + 细颗粒
+  { id:'leather', name:'皮革', base:[62,44,34],
+    grain:{ scale:19, amp:.15 }, grain2:{ scale:5, amp:.055 }, noise:.06, speckle:{ at:.997, add:.28 } },
+  // 水泥：中性灰，斑驳
+  { id:'concrete', name:'水泥', base:[124,121,116],
+    grain:{ scale:13, amp:.085 }, grain2:{ scale:4, amp:.035 }, noise:.105, speckle:{ at:.996, add:.16 } }
+];
+
+function texNoise(x, y, seed){
+  let h = (x * 374761393 + y * 668265263 + seed * 1442695040) | 0;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  h = h ^ (h >>> 16);
+  return (h >>> 0) / 4294967296;
+}
+
+/** 平滑值噪声：格点随机 + smoothstep 双线性插值，避免出现方块状斑块 */
+function texSmooth(x, y, scale, seed){
+  const gx = x / scale, gy = y / scale;
+  const x0 = Math.floor(gx), y0 = Math.floor(gy);
+  const fx = gx - x0, fy = gy - y0;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sy = fy * fy * (3 - 2 * fy);
+  const W = 32; // 与 512/scale 的格数对齐，取模保证首尾无缝
+  const n00 = texNoise(((x0 % W) + W) % W, ((y0 % W) + W) % W, seed);
+  const n10 = texNoise((((x0 + 1) % W) + W) % W, ((y0 % W) + W) % W, seed);
+  const n01 = texNoise(((x0 % W) + W) % W, (((y0 + 1) % W) + W) % W, seed);
+  const n11 = texNoise((((x0 + 1) % W) + W) % W, (((y0 + 1) % W) + W) % W, seed);
+  const a = n00 + (n10 - n00) * sx;
+  const b = n01 + (n11 - n01) * sx;
+  return a + (b - a) * sy;
+}
+
+const clamp8 = v => v < 0 ? 0 : v > 255 ? 255 : v | 0;
+
+function makeTextureCanvas(t){
+  const S = TEX_SIZE;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d');
+  const img = g.createImageData(S, S);
+  const d = img.data;
+  const [br, bg, bb] = t.base;
+  let i = 0;
+
+  for (let y = 0; y < S; y++){
+    const weftHit = t.weft && (y % t.weft.period) === 0 ? t.weft.amp : 0;
+    for (let x = 0; x < S; x++){
+      let v = 1;
+
+      // 45° 斜纹：三角波，周期整除 S 才不会出现接缝
+      if (t.twill){
+        const ph = ((x + y) % t.twill.period) / t.twill.period;
+        v += (ph < .5 ? 1 : -1) * t.twill.amp * .5;
+      }
+      // 经线（垂直）/ 纬线（水平）
+      if (t.warp && (x % t.warp.period) === 0) v += t.warp.amp;
+      v += weftHit;
+      // 低频斑块（皮革/水泥）
+      if (t.grain){
+        v += (texSmooth(x, y, t.grain.scale, 7) - .5) * t.grain.amp;
+      }
+      if (t.grain2){
+        v += (texSmooth(x, y, t.grain2.scale, 19) - .5) * t.grain2.amp;
+      }
+      // 细噪点
+      v += (texNoise(x, y, 3) - .5) * t.noise;
+      // 高光颗粒（棉絮 / 磨砂点）
+      if (t.speckle && texNoise(x, y, 11) > t.speckle.at) v += t.speckle.add;
+
+      d[i++] = clamp8(br * v);
+      d[i++] = clamp8(bg * v);
+      d[i++] = clamp8(bb * v);
+      d[i++] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+}
+
+const TEX_CANVAS = {};
+const TEX_SRC = {};
+let texReady = false;
+
+function buildTextures(){
+  if (texReady) return;
+  TEX_SPECS.forEach(t => {
+    try{
+      const c = makeTextureCanvas(t);
+      TEX_CANVAS[t.id] = c;
+      TEX_SRC[t.id] = c.toDataURL('image/png');
+    } catch(err){
+      console.warn('[Wallpaper Studio] 纹理生成失败:', t.id, err);
+    }
+  });
+  texReady = true;
+}
+
 const ENV_PRESETS = [
   { id:'mist',     name:'雾白', kind:'radial', at:[.50,.05], radius:[1.20,.95],
     stops:[[0,'#f6f4f0'],[.55,'#ded9d1'],[1,'#c5bfb5']] },
@@ -42,10 +158,23 @@ const ENV_PRESETS = [
   { id:'aurora',   name:'极光', kind:'radial', at:[.72,.18], radius:[.75,.65],
     stops:[[0,'#4a3280'],[.45,'#221a44'],[1,'#0a0913']] },
   { id:'sand',     name:'沙丘', kind:'linear', angle:165,
-    stops:[[0,'#3c2a20'],[.60,'#1d130f'],[1,'#0b0807']] }
+    stops:[[0,'#3c2a20'],[.60,'#1d130f'],[1,'#0b0807']] },
+  // —— 织物 / 材质纹理 ——
+  { id:'denim',    name:'牛仔布', kind:'texture', tex:'denim',    fallback:'#2c3e58' },
+  { id:'linen',    name:'亚麻',   kind:'texture', tex:'linen',    fallback:'#c9bea8' },
+  { id:'canvas',   name:'帆布',   kind:'texture', tex:'canvas',   fallback:'#a6967c' },
+  { id:'leather',  name:'皮革',   kind:'texture', tex:'leather',  fallback:'#3e2c22' },
+  { id:'concrete', name:'水泥',   kind:'texture', tex:'concrete', fallback:'#7c7974' }
 ];
 
 function envCSS(p){
+  if (p.kind === 'texture'){
+    const url = TEX_SRC[p.tex];
+    // 纹理贴图平铺；未生成完成时退回底色
+    return url
+      ? `url("${url}") repeat left top / ${TEX_SIZE}px ${TEX_SIZE}px, ${p.fallback}`
+      : p.fallback;
+  }
   const stops = p.stops.map(([o, c]) => `${c} ${Math.round(o * 1000) / 10}%`).join(',');
   if (p.kind === 'linear') return `linear-gradient(${p.angle}deg,${stops})`;
   return `radial-gradient(${p.radius[0] * 100}% ${p.radius[1] * 100}% at ${p.at[0] * 100}% ${p.at[1] * 100}%,${stops})`;
@@ -750,6 +879,20 @@ function paintEnv(g, w, h){
     return;
   }
   const p = ENV_PRESETS.find(x => x.id === e.presetId) || ENV_PRESETS[0];
+  if (p.kind === 'texture'){
+    const cv = TEX_CANVAS[p.tex];
+    if (cv){
+      // 用 pattern 平铺；此时 g 已带导出缩放，图案会跟着缩放，密度与页面一致
+      const pat = g.createPattern(cv, 'repeat');
+      g.fillStyle = pat || p.fallback;
+      g.fillRect(0, 0, w, h);
+    } else {
+      g.fillStyle = p.fallback;
+      g.fillRect(0, 0, w, h);
+    }
+    applyDim(g, w, h, e.dim);
+    return;
+  }
   if (p.kind === 'linear'){
     g.fillStyle = linearGradient(g, p.angle, w, h, p.stops);
     g.fillRect(0, 0, w, h);
@@ -1493,6 +1636,7 @@ function applyAll(){
 
 function init(){
   bind();
+  buildTextures();
   buildWallpapers();
   load();
   buildPresets();
