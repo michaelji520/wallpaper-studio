@@ -266,11 +266,11 @@ svg{display:block}
 }
 .lock-main{display:flex;flex-direction:column;align-items:center}
 .lock-date{
-  font-size:calc(var(--dw) * .038);font-weight:600;letter-spacing:.005em;
+  font-size:calc(var(--dw) * .042);font-weight:600;letter-spacing:.004em;
   opacity:.95;text-shadow:0 1px 14px rgba(0,0,0,.4);
 }
 .lock-time{
-  font-size:calc(var(--dw) * .244);line-height:.96;font-weight:600;
+  font-size:calc(var(--dw) * .248);line-height:.96;font-weight:600;
   letter-spacing:-.035em;margin-top:calc(var(--dw) * .006);
   text-shadow:0 2px 26px rgba(0,0,0,.32);
   font-feature-settings:"tnum";
@@ -321,7 +321,7 @@ svg{display:block}
     rgba(255,255,255,.86) 50%,
     rgba(255,255,255,.88) 74%,
     rgba(255,255,255,.96) 100%);
-  -webkit-text-stroke:.6px rgba(255,255,255,.52);
+  -webkit-text-stroke:.9px rgba(255,255,255,.62);
   -webkit-background-clip:text;background-clip:text;
   filter:
     drop-shadow(0 1px 0 rgba(255,255,255,.50))
@@ -330,7 +330,7 @@ svg{display:block}
     drop-shadow(0 14px 34px rgba(0,0,0,.32));
   text-shadow:none;
 }
-.device:not(.is-android) .lock-time{font-weight:700}
+.device:not(.is-android) .lock-time{font-weight:560}
 .device:not(.is-android) .lock-date{
   color:rgba(255,255,255,.90);
   text-shadow:0 1px 12px rgba(0,0,0,.34);
