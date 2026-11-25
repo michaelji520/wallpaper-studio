@@ -360,17 +360,11 @@ svg{display:block}
   -webkit-backdrop-filter:blur(26px) saturate(165%) brightness(1.04);
   border:.5px solid rgba(255,255,255,.30);
   box-shadow:
-    inset 0 1px 1px rgba(255,255,255,.28),
-    inset 0 -1px 2px rgba(0,0,0,.06),
-    0 4px 14px rgba(0,0,0,.16);
+    inset 0 -1px 2px rgba(0,0,0,.05),
+    0 4px 14px rgba(0,0,0,.14);
   color:rgba(255,255,255,.96);
 }
 /* 左上镜面高光 */
-.device:not(.is-android) .orb::after{
-  content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;
-  background:radial-gradient(56% 46% at 34% 20%, rgba(255,255,255,.20) 0%, rgba(255,255,255,.04) 46%, transparent 70%);
-  mix-blend-mode:screen;
-}
 /* 底部折射亮边（玻璃边缘全反射） */
 .device:not(.is-android) .orb::before{
   content:'';position:absolute;inset:.5px;border-radius:50%;pointer-events:none;
@@ -405,9 +399,8 @@ svg{display:block}
     rgba(255,255,255,.18) 100%);
   border-color:rgba(255,255,255,.55);
   box-shadow:
-    inset 0 1px 1px rgba(255,255,255,.70),
-    inset 0 -1px 2px rgba(90,80,70,.10),
-    0 4px 14px rgba(90,80,70,.14);
+    inset 0 -1px 2px rgba(90,80,70,.08),
+    0 4px 14px rgba(90,80,70,.12);
   color:rgba(20,18,15,.80);
 }
 

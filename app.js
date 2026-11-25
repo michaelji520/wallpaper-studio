@@ -1050,7 +1050,6 @@ async function buildChromeLayer(d, k){
       const rim = Math.max(1, rad * 0.045);
       const rimColor = onLight ? 'rgba(255,255,255,.58)' : 'rgba(255,255,255,.32)';
       const tint     = onLight ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.05)';
-      const hiColor  = onLight ? 'rgba(255,255,255,.34)' : 'rgba(255,255,255,.20)';
       const blurPx   = Math.max(2, rad * 0.45);
       ops.push(g => {
         g.save();
@@ -1062,15 +1061,6 @@ async function buildChromeLayer(d, k){
         drawWallpaper(g, SW, SH);
         if ('filter' in g) g.filter = 'none';
         g.fillStyle = tint;
-        g.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
-        // 左上镜面高光
-        const hg = g.createRadialGradient(
-          cx - rad * 0.34, cy - rad * 0.40, 0,
-          cx - rad * 0.34, cy - rad * 0.40, rad * 1.05);
-        hg.addColorStop(0, hiColor);
-        hg.addColorStop(.5, 'rgba(255,255,255,.08)');
-        hg.addColorStop(1, 'rgba(255,255,255,0)');
-        g.fillStyle = hg;
         g.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
         g.restore();
         // 玻璃边缘
