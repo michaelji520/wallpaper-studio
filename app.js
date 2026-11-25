@@ -37,24 +37,11 @@ const CUTOUT_LABEL = { island:'灵动岛', notch:'刘海', waterdrop:'水滴', p
 
 const TEX_SIZE = 512;
 const TEX_SPECS = [
-  // 牛仔布：靛蓝斜纹（3/1 twill）+ 细密经纬 + 棉絮亮点
+  // 牛仔布：靛蓝粗斜纹（3/1 twill）+ 细密经纬 + 棉絮亮点
+  // 注意：斜纹/经纬周期必须能整除 512，否则平铺会露接缝
   { id:'denim', name:'牛仔布', base:[44,62,88],
-    twill:{ period:6, amp:.19 }, warp:{ period:3, amp:-.055 },
-    noise:.17, speckle:{ at:.986, add:.42 } },
-  // 亚麻：米色，经纬交错更明显，纤维细噪
-  { id:'linen', name:'亚麻', base:[201,190,168],
-    warp:{ period:2, amp:-.05 }, weft:{ period:2, amp:-.038 },
-    noise:.085, speckle:{ at:.9975, add:.20 } },
-  // 帆布：卡其粗织，经纬 4px
-  { id:'canvas', name:'帆布', base:[166,150,124],
-    warp:{ period:4, amp:-.075 }, weft:{ period:4, amp:-.062 },
-    noise:.135 },
-  // 皮革：深棕，低频斑块 + 细颗粒
-  { id:'leather', name:'皮革', base:[62,44,34],
-    grain:{ scale:19, amp:.15 }, grain2:{ scale:5, amp:.055 }, noise:.06, speckle:{ at:.997, add:.28 } },
-  // 水泥：中性灰，斑驳
-  { id:'concrete', name:'水泥', base:[124,121,116],
-    grain:{ scale:13, amp:.085 }, grain2:{ scale:4, amp:.035 }, noise:.105, speckle:{ at:.996, add:.16 } }
+    twill:{ period:8, amp:.30 }, warp:{ period:4, amp:-.075 },
+    noise:.16, speckle:{ at:.983, add:.44 } }
 ];
 
 function texNoise(x, y, seed){
@@ -159,12 +146,8 @@ const ENV_PRESETS = [
     stops:[[0,'#4a3280'],[.45,'#221a44'],[1,'#0a0913']] },
   { id:'sand',     name:'沙丘', kind:'linear', angle:165,
     stops:[[0,'#3c2a20'],[.60,'#1d130f'],[1,'#0b0807']] },
-  // —— 织物 / 材质纹理 ——
-  { id:'denim',    name:'牛仔布', kind:'texture', tex:'denim',    fallback:'#2c3e58' },
-  { id:'linen',    name:'亚麻',   kind:'texture', tex:'linen',    fallback:'#c9bea8' },
-  { id:'canvas',   name:'帆布',   kind:'texture', tex:'canvas',   fallback:'#a6967c' },
-  { id:'leather',  name:'皮革',   kind:'texture', tex:'leather',  fallback:'#3e2c22' },
-  { id:'concrete', name:'水泥',   kind:'texture', tex:'concrete', fallback:'#7c7974' }
+  // —— 织物纹理 ——
+  { id:'denim',    name:'牛仔布', kind:'texture', tex:'denim',    fallback:'#2c3e58' }
 ];
 
 function envCSS(p){
