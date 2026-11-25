@@ -242,6 +242,7 @@ const DEFAULT_STATE = {
   env:{ mode:'preset', presetId:'mist', src:null, blur:0, dim:100 },
   lock:true,
   gloss:true,
+  glass:60,        // 液态玻璃浓度 0(极清透)~100(全着色)
   loop:true
 };
 
@@ -312,6 +313,8 @@ const dimVal      = $('dimVal');
 
 const lockToggle  = $('lockToggle');
 const glossToggle = $('glossToggle');
+const glassRange  = $('glassRange');
+const glassVal    = $('glassVal');
 const dropVeil    = $('dropVeil');
 const toastEl     = $('toast');
 
@@ -782,6 +785,14 @@ function applyGloss(){
   glossToggle.checked = state.gloss;
 }
 
+/* 液态玻璃浓度：0 = 极清透（几乎全透），100 = 全着色（接近实心） */
+function applyGlass(){
+  const k = Math.min(100, Math.max(0, state.glass)) / 100;
+  screenEl.style.setProperty('--glass-k', k.toFixed(2));
+  if (glassRange) glassRange.value = state.glass;
+  if (glassVal) glassVal.textContent = state.glass;
+}
+
 function applyFit(){
   setSeg(fitSeg, state.fit === 'contain' ? 1 : 0, 2);
   const el = mediaEl.querySelector('.wp');
@@ -992,6 +1003,7 @@ async function buildChromeLayer(d, k){
   const SW = d.w * k, SH = d.h * k;
   // 页面里由采样算出的时钟基色（与 CSS 共用同一个变量，保证导出观感一致）
   const clockRGB = (getComputedStyle(screenEl).getPropertyValue('--clock-rgb') || '').trim() || '255,255,255';
+  const gk = (typeof state.glass === 'number' ? state.glass : 60) / 100;
 
   const sbColor = getComputedStyle(document.querySelector('.statusbar')).color;
   for (const el of document.querySelectorAll('.sb-icons svg')){
@@ -1017,9 +1029,9 @@ async function buildChromeLayer(d, k){
           gr.addColorStop(.52, 'rgba(20,18,15,.72)');
           gr.addColorStop(1,   'rgba(20,18,15,.82)');
         } else if (screenEl.classList.contains('on-glass')){
-          gr.addColorStop(0,   `rgba(${clockRGB},.96)`);
-          gr.addColorStop(.52, `rgba(${clockRGB},.79)`);
-          gr.addColorStop(1,   `rgba(${clockRGB},.93)`);
+          gr.addColorStop(0,   `rgba(${clockRGB},${(0.56 + gk * 0.40).toFixed(3)})`);
+          gr.addColorStop(.52, `rgba(${clockRGB},${(0.46 + gk * 0.33).toFixed(3)})`);
+          gr.addColorStop(1,   `rgba(${clockRGB},${(0.54 + gk * 0.39).toFixed(3)})`);
         } else {
           gr.addColorStop(0,   'rgba(255,255,255,.99)');
           gr.addColorStop(.52, 'rgba(255,255,255,.92)');
@@ -1049,8 +1061,9 @@ async function buildChromeLayer(d, k){
     if (glass){
       const rim = Math.max(1, rad * 0.045);
       const rimColor = onLight ? 'rgba(255,255,255,.58)' : 'rgba(255,255,255,.32)';
-      const tint     = onLight ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.05)';
-      const blurPx   = Math.max(2, rad * 0.45);
+      const tintA    = onLight ? (0.03 + gk * 0.22) : (0.008 + gk * 0.16);
+      const tint     = `rgba(255,255,255,${tintA.toFixed(3)})`;
+      const blurPx   = Math.max(2, rad * (0.28 + gk * 0.42));
       ops.push(g => {
         g.save();
         g.beginPath();
@@ -1354,6 +1367,7 @@ function save(){
       env: { mode:'preset', presetId: state.env.presetId, blur: state.env.blur, dim: state.env.dim },
       lock: state.lock,
       gloss: state.gloss,
+      glass: state.glass,
       loop: state.loop
     };
     localStorage.setItem(STORE_KEY, JSON.stringify(snap));
@@ -1381,6 +1395,7 @@ function load(){
     }
     if (typeof s.lock === 'boolean') state.lock = s.lock;
     if (typeof s.gloss === 'boolean') state.gloss = s.gloss;
+    if (typeof s.glass === 'number') state.glass = Math.min(100, Math.max(0, s.glass));
     if (typeof s.loop === 'boolean') state.loop = s.loop;
   } catch(e){ /* 忽略损坏的存储 */ }
 }
@@ -1497,6 +1512,13 @@ function bind(){
     save();
   });
 
+  /* --- 玻璃浓度 --- */
+  glassRange.addEventListener('input', () => {
+    state.glass = +glassRange.value;
+    applyGlass();
+  });
+  glassRange.addEventListener('change', save);
+
   /* --- 导出 --- */
   $('exportImg').addEventListener('click', exportImage);
   $('exportVid').addEventListener('click', exportVideo);
@@ -1611,6 +1633,7 @@ function applyAll(){
   applyEnv();
   applyChrome();
   applyGloss();
+  applyGlass();
   applyFit();
   setSeg(osSeg, state.os === 'ios' ? 0 : 1, 2);
   setSeg(fitSeg, state.fit === 'contain' ? 1 : 0, 2);
