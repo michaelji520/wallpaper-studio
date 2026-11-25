@@ -148,6 +148,35 @@ svg{display:block}
   isolation:isolate;
 }
 
+/* ---------- 官方矢量外壳（iPhone 18 Pro / Max、iPhone Duo） ----------
+   外壳 SVG 只画机身，屏幕位置是挖空的；屏内容按实测开口定位，
+   四角多余的壁纸会被外壳不透明部分盖住，因此无需再做圆角裁剪。 */
+.device.has-shell{
+  width:var(--bw);height:var(--bh);
+  padding:0;background:none;
+}
+.device.has-shell::after{display:none}
+.device.has-shell .bezel{
+  position:absolute;inset:0;padding:0;
+  background:none;box-shadow:none;
+}
+.device.has-shell .screen{
+  position:absolute;
+  left:calc(var(--sx) - .75px);top:calc(var(--sy) - .75px);
+  width:calc(var(--dw) + 1.5px);height:calc(var(--dh) + 1.5px);
+  border-radius:calc(var(--r) + 1.5px);
+}
+.device.has-shell .cutout{display:none}
+.shell-frame{
+  position:absolute;
+  left:calc(var(--fx) * -1);top:calc(var(--fy) * -1);
+  width:var(--fw);height:var(--fh);
+  pointer-events:none;z-index:9;display:none;
+}
+.device.has-shell .shell-frame{display:block}
+.scaler.has-shell{filter:none}   /* 投影已烘焙进外壳 PNG，避免滤镜在缩放层上出现硬边 */
+.scaler.has-shell .btn-side{display:none}
+
 /* side buttons：放在裁切层之外，否则会被切掉 */
 .btn-side{
   position:absolute;width:3px;border-radius:2px;z-index:0;
@@ -259,6 +288,12 @@ svg{display:block}
 .sb-wifi{height:12.5px;width:auto}   /* → 16.7pt 宽 */
 .sb-batt{height:11.7px;width:auto}   /* → 25.1pt 宽 */
 
+/* 外壳机型（Duo 屏宽差异大）：状态栏按屏宽等比放大，避免在大屏上显得过小 */
+.device.has-shell .sb-icons{gap:calc(var(--dw) * .0137)}
+.device.has-shell .sb-cell,
+.device.has-shell .sb-wifi{height:calc(var(--dw) * .0311)}
+.device.has-shell .sb-batt{height:calc(var(--dw) * .0291)}
+
 .lockscreen{
   position:absolute;inset:0;
   display:flex;flex-direction:column;justify-content:space-between;align-items:center;
@@ -303,6 +338,16 @@ svg{display:block}
   box-shadow:0 1px 6px rgba(0,0,0,.22);z-index:7;
 }
 .device.is-android .home-bar{height:max(3px,calc(var(--dw) * .0085));opacity:.55;background:#fff}
+
+/* 横屏（Duo 内屏）：锁屏改用短边基准 --ui 排版，否则字号会被屏宽撑爆 */
+.device.is-landscape .lockscreen{padding:calc(var(--dh) * .16) 0 calc(var(--dh) * .05)}
+.device.is-landscape .lock-date{font-size:calc(var(--ui) * .056)}
+.device.is-landscape .lock-time{font-size:calc(var(--ui) * .27);margin-top:calc(var(--ui) * .008)}
+.device.is-landscape .lock-orbs{padding:0 calc(var(--ui) * .085)}
+.device.is-landscape .orb{width:calc(var(--ui) * .088);height:calc(var(--ui) * .088)}
+.device.is-landscape .orb .ic-flash{height:calc(var(--ui) * .038)}
+.device.is-landscape .orb .ic-cam{height:calc(var(--ui) * .032)}
+.device.is-landscape .home-bar{width:calc(var(--ui) * .30);height:max(4px,calc(var(--ui) * .012));bottom:calc(var(--dh) * .024)}
 
 /* 浅色壁纸：锁屏文字转深色 */
 .screen.on-light .chrome{color:#171512}
@@ -474,6 +519,26 @@ svg{display:block}
 .seg button:hover{color:#e8e6e1}
 .seg button.on{color:#fff}
 .seg.small button{font-size:11px;padding:6px 0}
+
+/* 机身配色圆点 */
+.color-row{display:flex;gap:10px;padding:4px 0 2px}
+.color-dot{
+  position:relative;width:27px;height:27px;border-radius:50%;padding:0;
+  background:
+    radial-gradient(circle at 32% 26%,rgba(255,255,255,.55) 0 9%,rgba(255,255,255,0) 46%),
+    linear-gradient(160deg,rgba(255,255,255,.16),rgba(0,0,0,.24)),
+    var(--c);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 2px 5px rgba(0,0,0,.45);
+  transition:transform .16s ease,box-shadow .16s ease;
+}
+.color-dot:hover{transform:translateY(-1px)}
+.color-dot.on{
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.22),
+    0 0 0 2px #17181c,
+    0 0 0 3.5px var(--accent),
+    0 2px 6px rgba(0,0,0,.5);
+}
 
 /* select */
 .select-wrap{position:relative;margin-top:9px}

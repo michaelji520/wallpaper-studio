@@ -65,13 +65,20 @@
 
           <div class="meta" id="deviceMeta">6.9″ · 440 × 956 pt · 78.0 × 163.4 mm</div>
 
-          <div class="label-row"><span>屏幕开孔</span><i id="cutoutLabel">灵动岛</i></div>
-          <div class="seg small" id="cutoutSeg" style="--n:4;--i:0">
-            <span class="seg-thumb"></span>
-            <button data-cutout="island" class="on">灵动岛</button>
-            <button data-cutout="notch">刘海</button>
-            <button data-cutout="waterdrop">水滴</button>
-            <button data-cutout="punch">挖孔</button>
+          <div id="cutoutBlock">
+            <div class="label-row"><span>屏幕开孔</span><i id="cutoutLabel">灵动岛</i></div>
+            <div class="seg small" id="cutoutSeg" style="--n:4;--i:0">
+              <span class="seg-thumb"></span>
+              <button data-cutout="island" class="on">灵动岛</button>
+              <button data-cutout="notch">刘海</button>
+              <button data-cutout="waterdrop">水滴</button>
+              <button data-cutout="punch">挖孔</button>
+            </div>
+          </div>
+
+          <div id="shellColorBlock" hidden>
+            <div class="label-row"><span>机身配色</span><i id="shellColorName">酒红</i></div>
+            <div class="color-row" id="shellColors"></div>
           </div>
         </section>
 
@@ -224,6 +231,7 @@
                 <div class="cutout" id="cutout" data-cutout="island"><span class="cam"></span></div>
               </div>
             </div>
+            <img class="shell-frame" id="shellFrame" alt="" aria-hidden="true" />
           </div>
         </div>
       </div>

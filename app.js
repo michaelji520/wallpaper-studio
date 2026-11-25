@@ -15,9 +15,45 @@ const FRAME = 11; // 机身每边厚度：2px 金属边框 + 9px 黑色面板
  * islandK：灵动岛整体缩放。iPhone 18 Pro 系列把红外相机移到屏下，药丸面积缩小约 35%
  *          （官方口径），线性缩放约 √0.65 ≈ 0.8。
  */
+/* 官方外壳矢量（Figma「iPhone 18 Pro / Max / Duo components (vectors)」同源 SVG 导出）
+ * view / body / screen 都是 SVG 用户单位（viewBox 内实测）：
+ *   body   = 机身外轮廓包围盒
+ *   screen = 屏幕开口包围盒（外壳里挖空的那块，壁纸就铺在这里）
+ * 选用外壳后，机身、侧键、灵动岛、摄像头全部由矢量图承担，不再程序化绘制。 */
+const SHELLS = {
+  ip18p: {
+    view:[1554, 2970], body:[118, 127, 1319, 2682], screen:[174, 174, 1206, 2622],
+    colors:[
+      { id:'burgundy', name:'酒红',   dot:'#5e2b35' },
+      { id:'glacier',  name:'冰川蓝', dot:'#c8d5e6' },
+      { id:'silver',   name:'银',     dot:'#d7d7d4' },
+      { id:'black',    name:'曜黑',   dot:'#2c2d31' }
+    ]
+  },
+  ip18pm: {
+    view:[1668, 3216], body:[119, 129, 1430, 2926], screen:[174, 174, 1320, 2868],
+    colors:[
+      { id:'burgundy', name:'酒红',   dot:'#5e2b35' },
+      { id:'glacier',  name:'冰川蓝', dot:'#c8d5e6' },
+      { id:'silver',   name:'银',     dot:'#d7d7d4' },
+      { id:'black',    name:'曜黑',   dot:'#2c2d31' }
+    ]
+  },
+  'ipduo-out': {
+    view:[1746, 2382], body:[97, 118, 1531, 2103], screen:[174, 174, 1398, 2034],
+    colors:[{ id:'starwhite', name:'星光白', dot:'#e8e4dc' }]
+  },
+  'ipduo-in': {
+    view:[3018, 2226], body:[116, 108, 2794, 1957], screen:[174, 174, 2670, 1878],
+    colors:[{ id:'starwhite', name:'星光白', dot:'#e8e4dc' }]
+  }
+};
+
 const DEVICES = [
-  { id:'ip18pm', os:'ios', name:'iPhone 18 Pro Max', inch:6.9,  w:440, h:956,  r:62,    pad:15.5, cutout:'island', islandK:0.80, mm:[78.0,163.4] },
-  { id:'ip18p',  os:'ios', name:'iPhone 18 Pro',     inch:6.3,  w:402, h:874,  r:62,    pad:16.1, cutout:'island', islandK:0.80, mm:[71.9,150.0] },
+  { id:'ip18pm', os:'ios', name:'iPhone 18 Pro Max', inch:6.9,  w:440, h:956,  r:62,    pad:15.5, cutout:'island', islandK:0.80, mm:[78.0,163.4], shell:'ip18pm', sbTop:27, sbRight:28 },
+  { id:'ip18p',  os:'ios', name:'iPhone 18 Pro',     inch:6.3,  w:402, h:874,  r:62,    pad:16.1, cutout:'island', islandK:0.80, mm:[71.9,150.0], shell:'ip18p', sbTop:26, sbRight:26 },
+  { id:'ipduo-out', os:'ios', name:'iPhone Duo · 外屏', inch:5.4, w:466, h:678, r:44, pad:26, cutout:'punch', mm:[84.5,116.1], shell:'ipduo-out', sbTop:30, sbRight:86 },
+  { id:'ipduo-in',  os:'ios', name:'iPhone Duo · 内屏', inch:7.1, w:890, h:626, r:48, pad:22, cutout:'none', landscape:true, mm:[154.3,108.1], shell:'ipduo-in', sbTop:32, sbRight:56 },
   { id:'ip17pm', os:'ios', name:'iPhone 17 Pro Max', inch:6.9,  w:440, h:956,  r:62,    pad:15.5, cutout:'island', mm:[78.0,163.4] },
   { id:'ip16p',  os:'ios', name:'iPhone 16 Pro',     inch:6.3,  w:402, h:874,  r:62,    pad:14.9, cutout:'island', mm:[71.5,149.6] },
   { id:'ip14',   os:'ios', name:'iPhone 14',         inch:6.1,  w:390, h:844,  r:47.33, pad:20.8, cutout:'notch',  mm:[71.5,146.7] },
@@ -243,7 +279,8 @@ const DEFAULT_STATE = {
   lock:true,
   gloss:true,
   glass:60,        // 液态玻璃浓度 0(极清透)~100(全着色)
-  loop:true
+  loop:true,
+  shellColors:{}   // shell key -> colorway id
 };
 
 const STORE_KEY = 'wallpaper-studio.v1';
@@ -276,6 +313,11 @@ const bezelEl     = $('bezel');
 const mediaEl     = $('media');
 const envEl       = $('env');
 const cutoutEl    = $('cutout');
+const shellFrame  = $('shellFrame');
+const cutoutBlock = $('cutoutBlock');
+const shellColorBlock = $('shellColorBlock');
+const shellColorsEl   = $('shellColors');
+const shellColorName  = $('shellColorName');
 const chromeEl    = $('chrome');
 const lockDate    = $('lockDate');
 const lockTime    = $('lockTime');
@@ -495,6 +537,13 @@ function squircleGeom(d){
 
 function applySquircle(){
   const d = getDevice();
+  if (d.shell){
+    // 外壳机型：形状来自官方矢量，不再用 squircle 裁切
+    device.style.clipPath = '';
+    bezelEl.style.clipPath = '';
+    screenEl.style.clipPath = '';
+    return;
+  }
   const geo = squircleGeom(d);
   const q = (k) => `path("${squirclePath(geo[k].w, geo[k].h, geo[k].r, geo[k].s)}")`;
   device.style.clipPath = q('dev');
@@ -502,17 +551,67 @@ function applySquircle(){
   screenEl.style.clipPath = q('screen');
 }
 
+/** 外壳几何：SVG 用户单位 → 逻辑 pt（k = 每单位对应多少 pt） */
+function shellGeom(d){
+  const s = d.shell && SHELLS[d.shell];
+  if (!s) return null;
+  const k = d.w / s.screen[2];
+  const want = (state.shellColors && state.shellColors[d.shell]) || s.colors[0].id;
+  const color = s.colors.find(c => c.id === want) || s.colors[0];
+  return {
+    s, k, color,
+    bw: s.body[2] * k, bh: s.body[3] * k,
+    sx: (s.screen[0] - s.body[0]) * k,
+    sy: (s.screen[1] - s.body[1]) * k,
+    sw: s.screen[2] * k, sh: s.screen[3] * k,
+    fx: s.body[0] * k, fy: s.body[1] * k,
+    fw: s.view[0] * k, fh: s.view[1] * k,
+    src: `assets/shells/${d.shell}-${color.id}.png`
+  };
+}
+
+/** 机身外廓尺寸（pt）：外壳机型取矢量外轮廓，其它按屏幕 + 边框推算 */
+function bodySize(d){
+  const sh = shellGeom(d);
+  if (sh) return [sh.bw, sh.bh];
+  const pad = d.pad ?? FRAME;
+  return [d.w + pad * 2, d.h + pad * 2];
+}
+
 function applyDevice(){
   const d = getDevice();
   const pad = d.pad ?? 11;
+  const sh = shellGeom(d);
+
   device.style.setProperty('--dw', d.w + 'px');
   device.style.setProperty('--dh', d.h + 'px');
   device.style.setProperty('--r', d.r + 'px');
   device.style.setProperty('--pad', pad + 'px');
   device.style.setProperty('--island-k', d.islandK || 1);
+  // 锁屏排版基准单位：竖屏取屏宽；横屏（Duo 内屏）取屏高的 0.72，避免字号撑爆
+  device.style.setProperty('--ui', (d.landscape ? d.h * 0.72 : d.w) + 'px');
   device.classList.toggle('is-android', d.os === 'android');
+  device.classList.toggle('is-landscape', !!d.landscape);
+  device.classList.toggle('has-shell', !!sh);
   scaler.classList.toggle('is-android', d.os === 'android');
+  scaler.classList.toggle('has-shell', !!sh);
+
+  if (sh){
+    device.style.setProperty('--bw', sh.bw + 'px');
+    device.style.setProperty('--bh', sh.bh + 'px');
+    device.style.setProperty('--sx', sh.sx + 'px');
+    device.style.setProperty('--sy', sh.sy + 'px');
+    device.style.setProperty('--fx', sh.fx + 'px');
+    device.style.setProperty('--fy', sh.fy + 'px');
+    device.style.setProperty('--fw', sh.fw + 'px');
+    device.style.setProperty('--fh', sh.fh + 'px');
+    if (shellFrame.getAttribute('src') !== sh.src) shellFrame.src = sh.src;
+  }
   applySquircle();
+
+  cutoutBlock.hidden = !!sh;
+  shellColorBlock.hidden = !sh || sh.s.colors.length < 2;
+  if (sh) buildShellColors(sh);
 
   buildDeviceOptions();
 
@@ -525,16 +624,24 @@ function applyDevice(){
   }
 }
 
+/** 机身配色圆点（只在外壳机型出现） */
+function buildShellColors(sh){
+  shellColorName.textContent = sh.color.name;
+  shellColorsEl.innerHTML = sh.s.colors.map(c => `
+    <button class="color-dot${c.id === sh.color.id ? ' on' : ''}" data-color="${c.id}"
+            title="${c.name}" aria-label="${c.name}" style="--c:${c.dot}"></button>`).join('');
+}
+
 function applyCutout(){
   cutoutEl.dataset.cutout = state.cutout;
   cutoutLabel.textContent = CUTOUT_LABEL[state.cutout] || '—';
   setSeg(cutoutSeg, Math.max(0, CUTOUTS.indexOf(state.cutout)), 4);
 
-  // 状态栏垂直位置按开孔类型对齐（灵动岛 54pt / 刘海 47pt 状态栏）
+  // 状态栏垂直位置按开孔类型对齐（灵动岛 54pt / 刘海 47pt 状态栏）；外壳机型可单独指定
   const d = getDevice();
-  const sbTop = { island: 22, notch: 17, punch: 13, waterdrop: 11 }[state.cutout] ?? 18;
+  const sbTop = d.sbTop ?? ({ island: 22, notch: 17, punch: 13, waterdrop: 11 }[state.cutout] ?? 18);
   device.style.setProperty('--sb-top', sbTop + 'px');
-  device.style.setProperty('--sb-right', d.os === 'android' ? '16px' : '26px');
+  device.style.setProperty('--sb-right', (d.sbRight ?? (d.os === 'android' ? 16 : 26)) + 'px');
 }
 
 function computeFit(){
@@ -544,9 +651,7 @@ function computeFit(){
   const availW = Math.max(canvasArea.clientWidth - padX, 80);
   const availH = Math.max(canvasArea.clientHeight - padY, 80);
   const d = getDevice();
-  const pad = d.pad ?? FRAME;
-  const devW = d.w + pad * 2;
-  const devH = d.h + pad * 2;
+  const [devW, devH] = bodySize(d);
   return Math.min(availW / devW, availH / devH, 1);
 }
 
@@ -859,6 +964,24 @@ async function ensureEnvImage(){
   if (img && !img.complete) await img.decode().catch(() => {});
 }
 
+/* 外壳矢量预载：导出时要把同一张 SVG 画进画布 */
+const shellImgs = new Map();
+function ensureShellImage(d){
+  const sh = shellGeom(d);
+  if (!sh) return Promise.resolve(null);
+  const hit = shellImgs.get(sh.src);
+  if (hit) return hit.p;
+  const rec = { img: null, __ready: false };
+  rec.p = new Promise(res => {
+    const img = new Image();
+    img.onload = () => { rec.img = img; rec.__ready = true; res(img); };
+    img.onerror = () => res(null);
+    img.src = sh.src;
+  });
+  shellImgs.set(sh.src, rec);
+  return rec.p;
+}
+
 function applyDim(g, w, h, dim){
   if (dim === 100) return;
   g.save();
@@ -1109,9 +1232,39 @@ async function buildChromeLayer(d, k){
 /** 整机：机身 + 黑边 + 屏幕内容 + 侧键 + 落地阴影 */
 function drawPhone(g, vp, layer){
   const d = getDevice();
-  const geo = squircleGeom(d);
+  const sh = shellGeom(d);
   const devRect = device.getBoundingClientRect();
   const x = devRect.left - vp.left, y = devRect.top - vp.top;
+
+  if (sh){
+    const z = devRect.width / sh.bw;   // 显示像素 / 逻辑 pt
+    g.save();
+    g.translate(x, y);
+
+    // 屏幕内容铺满矢量挖空区
+    g.save();
+    g.translate(sh.sx * z - .75 * z, sh.sy * z - .75 * z);
+    g.beginPath();
+    rrect(g, 0, 0, (sh.sw + 1.5) * z, (sh.sh + 1.5) * z, (d.r + 1.5) * z);
+    g.clip();
+    drawWallpaper(g, (sh.sw + 1.5) * z, (sh.sh + 1.5) * z);
+    if (layer) layer.draw(g);
+    g.restore();
+
+    // 官方外壳（含自带投影，按 viewBox 完整贴回）
+    const img = shellImgs.get(sh.src);
+    const ready = img && img.__ready ? img.img : null;
+    if (ready){
+      g.drawImage(ready, -sh.fx * z, -sh.fy * z, sh.fw * z, sh.fh * z);
+    } else {
+      g.fillStyle = '#111';
+      g.fillRect(0, 0, sh.bw * z, sh.bh * z);
+    }
+    g.restore();
+    return;
+  }
+
+  const geo = squircleGeom(d);
   const z = devRect.width / geo.dev.w;
 
   const bodyPath = new Path2D(squirclePath(geo.dev.w * z, geo.dev.h * z, geo.dev.r * z, geo.dev.s));
@@ -1207,6 +1360,7 @@ async function exportImage(){
     const d = getDevice();
     const { c, g, vp } = stageCanvas();
     await ensureEnvImage();
+    await ensureShellImage(d);
     const z = screenEl.getBoundingClientRect().width / d.w;
     const layer = state.lock ? await buildChromeLayer(d, z) : null;
     drawScene(g, vp, layer);
@@ -1234,6 +1388,7 @@ async function exportVideo(){
   const d = getDevice();
   const { c, g, vp } = stageCanvas();
   await ensureEnvImage();
+  await ensureShellImage(d);
   const z = screenEl.getBoundingClientRect().width / d.w;
   const layer = state.lock ? await buildChromeLayer(d, z) : null;
 
@@ -1368,7 +1523,8 @@ function save(){
       lock: state.lock,
       gloss: state.gloss,
       glass: state.glass,
-      loop: state.loop
+      loop: state.loop,
+      shellColors: state.shellColors
     };
     localStorage.setItem(STORE_KEY, JSON.stringify(snap));
   } catch(e){ /* 忽略隐私模式下的写入失败 */ }
@@ -1397,6 +1553,7 @@ function load(){
     if (typeof s.gloss === 'boolean') state.gloss = s.gloss;
     if (typeof s.glass === 'number') state.glass = Math.min(100, Math.max(0, s.glass));
     if (typeof s.loop === 'boolean') state.loop = s.loop;
+    if (s.shellColors && typeof s.shellColors === 'object') state.shellColors = s.shellColors;
   } catch(e){ /* 忽略损坏的存储 */ }
 }
 
@@ -1419,6 +1576,15 @@ function bind(){
   });
 
   deviceSelect.addEventListener('change', () => changeDevice(deviceSelect.value));
+
+  shellColorsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.color-dot');
+    const d = getDevice();
+    if (!btn || !d.shell) return;
+    state.shellColors[d.shell] = btn.dataset.color;
+    applyDevice();
+    save();
+  });
 
   cutoutSeg.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-cutout]');
