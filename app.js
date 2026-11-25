@@ -831,6 +831,10 @@ async function buildChromeLayer(d, k){
     h: r.height / z * k
   });
   const ops = [];
+  // iOS 26/27 液态玻璃：时钟用渐变玻璃漆，圆钮用「背景折射 + 高光 + 玻璃边」
+  const glass = d.os !== 'android';
+  const onLight = screenEl.classList.contains('on-light');
+  const SW = d.w * k, SH = d.h * k;
 
   const sbColor = getComputedStyle(document.querySelector('.statusbar')).color;
   for (const el of document.querySelectorAll('.sb-icons svg')){
@@ -843,12 +847,27 @@ async function buildChromeLayer(d, k){
     const r = toC(el.getBoundingClientRect());
     const cs = getComputedStyle(el);
     const text = el.textContent;
-    const color = cs.color;
+    const solid = cs.color;                       // Android / 日期用实色
+    const isTime = el === lockTime;
     const size = parseFloat(cs.fontSize) * k;
     const ls = (parseFloat(cs.letterSpacing) || 0) * k;
     const font = `${cs.fontWeight} ${size}px ${cs.fontFamily}`;
     ops.push(g => {
-      g.fillStyle = color;
+      if (glass && isTime){
+        const gr = g.createLinearGradient(0, r.y, 0, r.y + r.h);
+        if (onLight){
+          gr.addColorStop(0,   'rgba(20,18,15,.94)');
+          gr.addColorStop(.52, 'rgba(20,18,15,.80)');
+          gr.addColorStop(1,   'rgba(20,18,15,.92)');
+        } else {
+          gr.addColorStop(0,   'rgba(255,255,255,.96)');
+          gr.addColorStop(.52, 'rgba(255,255,255,.86)');
+          gr.addColorStop(1,   'rgba(255,255,255,.95)');
+        }
+        g.fillStyle = gr;
+      } else {
+        g.fillStyle = solid;
+      }
       g.textAlign = 'center';
       g.textBaseline = 'middle';
       g.font = font;
@@ -861,17 +880,56 @@ async function buildChromeLayer(d, k){
   for (const orb of document.querySelectorAll('.orb')){
     const r = toC(orb.getBoundingClientRect());
     const cs = getComputedStyle(orb);
-    const orbBg = cs.backgroundColor;
     const iconEl = orb.querySelector('svg');
     const ir = iconEl ? toC(iconEl.getBoundingClientRect()) : null;
     const icon = iconEl ? await svgImage(iconEl, cs.color) : null;
-    ops.push(g => {
-      g.fillStyle = orbBg;
-      g.beginPath();
-      g.arc(r.x + r.w / 2, r.y + r.h / 2, r.w / 2, 0, Math.PI * 2);
-      g.fill();
-      if (icon && ir) g.drawImage(icon, ir.x, ir.y, ir.w, ir.h);
-    });
+    const cx = r.x + r.w / 2, cy = r.y + r.h / 2, rad = r.w / 2;
+
+    if (glass){
+      const rim = Math.max(1, rad * 0.045);
+      const rimColor = onLight ? 'rgba(255,255,255,.66)' : 'rgba(255,255,255,.36)';
+      const tint     = onLight ? 'rgba(255,255,255,.30)' : 'rgba(255,255,255,.13)';
+      const hiColor  = onLight ? 'rgba(255,255,255,.62)' : 'rgba(255,255,255,.44)';
+      const blurPx   = Math.max(2, rad * 0.45);
+      ops.push(g => {
+        g.save();
+        g.beginPath();
+        g.arc(cx, cy, rad - rim / 2, 0, Math.PI * 2);
+        g.clip();
+        // 背景折射：把壁纸重新模糊画一遍
+        if ('filter' in g) g.filter = `blur(${blurPx}px)`;
+        drawWallpaper(g, SW, SH);
+        if ('filter' in g) g.filter = 'none';
+        g.fillStyle = tint;
+        g.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
+        // 左上镜面高光
+        const hg = g.createRadialGradient(
+          cx - rad * 0.34, cy - rad * 0.40, 0,
+          cx - rad * 0.34, cy - rad * 0.40, rad * 1.05);
+        hg.addColorStop(0, hiColor);
+        hg.addColorStop(.5, 'rgba(255,255,255,.08)');
+        hg.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = hg;
+        g.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
+        g.restore();
+        // 玻璃边缘
+        g.beginPath();
+        g.arc(cx, cy, rad - rim / 2, 0, Math.PI * 2);
+        g.strokeStyle = rimColor;
+        g.lineWidth = rim;
+        g.stroke();
+        if (icon && ir) g.drawImage(icon, ir.x, ir.y, ir.w, ir.h);
+      });
+    } else {
+      const orbBg = cs.backgroundColor;
+      ops.push(g => {
+        g.fillStyle = orbBg;
+        g.beginPath();
+        g.arc(cx, cy, rad, 0, Math.PI * 2);
+        g.fill();
+        if (icon && ir) g.drawImage(icon, ir.x, ir.y, ir.w, ir.h);
+      });
+    }
   }
 
   const hb = document.querySelector('.home-bar');
