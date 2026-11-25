@@ -445,26 +445,45 @@ function fitNow(){
    ============================================================ */
 
 function sampleLuma(source){
+  const t = sampleTone(source);
+  return t.luma;
+}
+
+/** 采样壁纸上部（锁屏时钟所在区域）的平均色与亮度 */
+function sampleTone(source){
+  const fallback = { luma: 0, r: 255, g: 255, b: 255 };
   try{
     const c = document.createElement('canvas');
     c.width = 16; c.height = 32;
     const g = c.getContext('2d', { willReadFrequently: true });
     g.drawImage(source, 0, 0, 16, 32);
-    const d = g.getImageData(0, 0, 16, 12).data; // 只看上三分之一（锁屏文字区域）
-    let sum = 0, n = 0;
+    const d = g.getImageData(0, 0, 16, 12).data; // 上三分之一（时钟区域）
+    let lr = 0, lg = 0, lb = 0, n = 0;
     for (let i = 0; i < d.length; i += 4){
-      sum += .2126 * d[i] + .7152 * d[i+1] + .0722 * d[i+2];
+      lr += d[i]; lg += d[i+1]; lb += d[i+2];
       n++;
     }
-    return sum / n;
+    if (!n) return fallback;
+    const r = lr / n, gg = lg / n, b = lb / n;
+    return { luma: .2126 * r + .7152 * gg + .0722 * b, r, g: gg, b };
   } catch(e){
-    return 0; // 跨域图片画布被污染时按深色处理
+    return fallback; // 跨域图片画布被污染时按深色处理
   }
 }
 
 function syncTone(source){
-  if (!source){ screenEl.classList.remove('on-light'); return; }
-  screenEl.classList.toggle('on-light', sampleLuma(source) > 166);
+  if (!source){
+    screenEl.classList.remove('on-light', 'on-glass');
+    screenEl.style.removeProperty('--clock-rgb');
+    return;
+  }
+  const t = sampleTone(source);
+  // 时钟取「壁纸该区域平均色的提亮版」，而不是纯白 —— 真机玻璃字会带背景色相
+  const boost = v => Math.round(Math.min(255, 255 - (255 - v) * 0.24));
+  screenEl.style.setProperty('--clock-rgb', `${boost(t.r)},${boost(t.g)},${boost(t.b)}`);
+  screenEl.classList.toggle('on-light', t.luma > 166);
+  // 中等亮度壁纸才让时钟透出背景；太暗透出来会发灰，太亮要转深色
+  screenEl.classList.toggle('on-glass', t.luma > 95 && t.luma <= 166);
 }
 
 function watchTone(el, source){
@@ -835,6 +854,8 @@ async function buildChromeLayer(d, k){
   const glass = d.os !== 'android';
   const onLight = screenEl.classList.contains('on-light');
   const SW = d.w * k, SH = d.h * k;
+  // 页面里由采样算出的时钟基色（与 CSS 共用同一个变量，保证导出观感一致）
+  const clockRGB = (getComputedStyle(screenEl).getPropertyValue('--clock-rgb') || '').trim() || '255,255,255';
 
   const sbColor = getComputedStyle(document.querySelector('.statusbar')).color;
   for (const el of document.querySelectorAll('.sb-icons svg')){
@@ -856,13 +877,17 @@ async function buildChromeLayer(d, k){
       if (glass && isTime){
         const gr = g.createLinearGradient(0, r.y, 0, r.y + r.h);
         if (onLight){
-          gr.addColorStop(0,   'rgba(20,18,15,.94)');
-          gr.addColorStop(.52, 'rgba(20,18,15,.80)');
-          gr.addColorStop(1,   'rgba(20,18,15,.92)');
+          gr.addColorStop(0,   'rgba(20,18,15,.86)');
+          gr.addColorStop(.52, 'rgba(20,18,15,.72)');
+          gr.addColorStop(1,   'rgba(20,18,15,.82)');
+        } else if (screenEl.classList.contains('on-glass')){
+          gr.addColorStop(0,   `rgba(${clockRGB},.96)`);
+          gr.addColorStop(.52, `rgba(${clockRGB},.79)`);
+          gr.addColorStop(1,   `rgba(${clockRGB},.93)`);
         } else {
-          gr.addColorStop(0,   'rgba(255,255,255,.96)');
-          gr.addColorStop(.52, 'rgba(255,255,255,.86)');
-          gr.addColorStop(1,   'rgba(255,255,255,.95)');
+          gr.addColorStop(0,   'rgba(255,255,255,.99)');
+          gr.addColorStop(.52, 'rgba(255,255,255,.92)');
+          gr.addColorStop(1,   'rgba(255,255,255,.98)');
         }
         g.fillStyle = gr;
       } else {
@@ -887,9 +912,9 @@ async function buildChromeLayer(d, k){
 
     if (glass){
       const rim = Math.max(1, rad * 0.045);
-      const rimColor = onLight ? 'rgba(255,255,255,.66)' : 'rgba(255,255,255,.36)';
-      const tint     = onLight ? 'rgba(255,255,255,.30)' : 'rgba(255,255,255,.13)';
-      const hiColor  = onLight ? 'rgba(255,255,255,.62)' : 'rgba(255,255,255,.44)';
+      const rimColor = onLight ? 'rgba(255,255,255,.58)' : 'rgba(255,255,255,.32)';
+      const tint     = onLight ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.05)';
+      const hiColor  = onLight ? 'rgba(255,255,255,.34)' : 'rgba(255,255,255,.20)';
       const blurPx   = Math.max(2, rad * 0.45);
       ops.push(g => {
         g.save();

@@ -316,11 +316,12 @@ svg{display:block}
 .device:not(.is-android) .lock-time{
   color:transparent;
   background-image:linear-gradient(178deg,
-    rgba(255,255,255,.96) 0%,
-    rgba(255,255,255,.93) 26%,
-    rgba(255,255,255,.86) 52%,
-    rgba(255,255,255,.88) 72%,
-    rgba(255,255,255,.95) 100%);
+    rgba(255,255,255,.99) 0%,
+    rgba(255,255,255,.96) 26%,
+    rgba(255,255,255,.92) 52%,
+    rgba(255,255,255,.94) 74%,
+    rgba(255,255,255,.98) 100%);
+  -webkit-text-stroke:.3px rgba(255,255,255,.22);
   -webkit-background-clip:text;background-clip:text;
   filter:
     drop-shadow(0 1px 0 rgba(255,255,255,.50))
@@ -336,35 +337,44 @@ svg{display:block}
   letter-spacing:.01em;
 }
 
+/* 中等亮度壁纸：数字真正半透明，壁纸从笔画里透出来（参考真机效果） */
+.screen.on-glass .lock-time{
+  background-image:linear-gradient(178deg,
+    rgba(var(--clock-rgb,255,255,255),.96) 0%,
+    rgba(var(--clock-rgb,255,255,255),.86) 26%,
+    rgba(var(--clock-rgb,255,255,255),.79) 52%,
+    rgba(var(--clock-rgb,255,255,255),.83) 74%,
+    rgba(var(--clock-rgb,255,255,255),.93) 100%);
+  -webkit-text-stroke:.5px rgba(255,255,255,.38);
+}
+
 /* 圆钮：液态玻璃 —— 高透、强折射、镜面高光、玻璃边缘 */
 .device:not(.is-android) .orb{
   position:relative;
   background:
     radial-gradient(130% 130% at 32% 16%,
-      rgba(255,255,255,.34) 0%,
-      rgba(255,255,255,.12) 42%,
-      rgba(255,255,255,.16) 100%);
-  backdrop-filter:blur(30px) saturate(200%) brightness(1.06);
-  -webkit-backdrop-filter:blur(30px) saturate(200%) brightness(1.06);
-  border:.5px solid rgba(255,255,255,.34);
+      rgba(255,255,255,.10) 0%,
+      rgba(255,255,255,.025) 45%,
+      rgba(255,255,255,.055) 100%);
+  backdrop-filter:blur(26px) saturate(165%) brightness(1.04);
+  -webkit-backdrop-filter:blur(26px) saturate(165%) brightness(1.04);
+  border:.5px solid rgba(255,255,255,.30);
   box-shadow:
-    inset 0 1.5px 2px rgba(255,255,255,.60),
-    inset 0 -2px 6px rgba(0,0,0,.10),
-    inset -2px 0 6px rgba(255,255,255,.10),
-    0 8px 24px rgba(0,0,0,.26),
-    0 1px 3px rgba(0,0,0,.14);
-  color:rgba(255,255,255,.92);
+    inset 0 1px 1px rgba(255,255,255,.28),
+    inset 0 -1px 2px rgba(0,0,0,.06),
+    0 4px 14px rgba(0,0,0,.16);
+  color:rgba(255,255,255,.96);
 }
 /* 左上镜面高光 */
 .device:not(.is-android) .orb::after{
   content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;
-  background:radial-gradient(52% 42% at 34% 20%, rgba(255,255,255,.62) 0%, rgba(255,255,255,.10) 48%, transparent 72%);
+  background:radial-gradient(56% 46% at 34% 20%, rgba(255,255,255,.20) 0%, rgba(255,255,255,.04) 46%, transparent 70%);
   mix-blend-mode:screen;
 }
 /* 底部折射亮边（玻璃边缘全反射） */
 .device:not(.is-android) .orb::before{
   content:'';position:absolute;inset:.5px;border-radius:50%;pointer-events:none;
-  box-shadow:inset 0 -1px 1px rgba(255,255,255,.26);
+  box-shadow:inset 0 -1px 1px rgba(255,255,255,.18);
 }
 
 /* 状态栏：玻璃上的图标，投影更散更柔 */
@@ -375,11 +385,12 @@ svg{display:block}
 /* 浅色壁纸下的玻璃：整体转深色，高光改成白色反光 */
 .screen.on-light .lock-time{
   background-image:linear-gradient(178deg,
-    rgba(20,18,15,.94) 0%,
-    rgba(20,18,15,.89) 26%,
-    rgba(20,18,15,.80) 52%,
-    rgba(20,18,15,.83) 72%,
-    rgba(20,18,15,.92) 100%);
+    rgba(20,18,15,.82) 0%,
+    rgba(20,18,15,.74) 26%,
+    rgba(20,18,15,.66) 52%,
+    rgba(20,18,15,.70) 74%,
+    rgba(20,18,15,.80) 100%);
+  -webkit-text-stroke:.35px rgba(255,255,255,.42);
   filter:
     drop-shadow(0 1px 0 rgba(255,255,255,.65))
     drop-shadow(0 0 26px rgba(255,255,255,.35))
@@ -389,15 +400,14 @@ svg{display:block}
 .screen.on-light .lock-date{color:rgba(20,18,15,.88);text-shadow:0 1px 10px rgba(255,255,255,.5)}
 .screen.on-light .orb{
   background:radial-gradient(130% 130% at 32% 16%,
-    rgba(255,255,255,.52) 0%,
-    rgba(255,255,255,.26) 42%,
-    rgba(255,255,255,.34) 100%);
-  border-color:rgba(255,255,255,.62);
+    rgba(255,255,255,.30) 0%,
+    rgba(255,255,255,.12) 45%,
+    rgba(255,255,255,.18) 100%);
+  border-color:rgba(255,255,255,.55);
   box-shadow:
-    inset 0 1.5px 2px rgba(255,255,255,.85),
-    inset 0 -2px 6px rgba(90,80,70,.14),
-    0 8px 24px rgba(90,80,70,.20),
-    0 1px 3px rgba(90,80,70,.10);
+    inset 0 1px 1px rgba(255,255,255,.70),
+    inset 0 -1px 2px rgba(90,80,70,.10),
+    0 4px 14px rgba(90,80,70,.14);
   color:rgba(20,18,15,.80);
 }
 
