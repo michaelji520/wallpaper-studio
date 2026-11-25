@@ -6,16 +6,25 @@
 
 const FRAME = 11; // 机身每边厚度：2px 金属边框 + 9px 黑色面板
 
+/* 机型参数说明
+ * w/h：逻辑尺寸（pt 或 dp）。iOS 取自 Apple 官方分辨率 ÷ 3；Android 取系统默认显示大小下的 dp。
+ * inch：官方标称对角线（iOS 为含圆角标称值，括号里是 Apple 给的矩形对角线）。
+ * r   ：屏幕圆角半径。iOS 为 UIScreen._displayCornerRadius 实测值（ScreenCorners）。
+ * pad ：机身外沿到屏幕边缘的厚度，由「(机身宽 − 屏幕物理宽) / 2 × 每毫米点数」反推。
+ * mm  ：机身宽 × 高（官方数据）。
+ * islandK：灵动岛整体缩放。iPhone 18 Pro 系列把红外相机移到屏下，药丸面积缩小约 35%
+ *          （官方口径），线性缩放约 √0.65 ≈ 0.8。
+ */
 const DEVICES = [
-  { id:'ip18pm', os:'ios', name:'iPhone 18 Pro Max', inch:6.9,  w:440, h:956,  r:62,    pad:15.3, cutout:'island', mm:[78.0,163.4] },
-  { id:'ip18p',  os:'ios', name:'iPhone 18 Pro',     inch:6.3,  w:402, h:874,  r:62,    pad:15.9, cutout:'island', mm:[71.9,150.0] },
-  { id:'ip17pm', os:'ios', name:'iPhone 17 Pro Max', inch:6.9,  w:440, h:956,  r:62,    pad:15.3, cutout:'island', mm:[78.0,163.4] },
-  { id:'ip16p',  os:'ios', name:'iPhone 16 Pro',     inch:6.3,  w:402, h:874,  r:62,    pad:14.7, cutout:'island', mm:[71.5,149.6] },
+  { id:'ip18pm', os:'ios', name:'iPhone 18 Pro Max', inch:6.9,  w:440, h:956,  r:62,    pad:15.5, cutout:'island', islandK:0.80, mm:[78.0,163.4] },
+  { id:'ip18p',  os:'ios', name:'iPhone 18 Pro',     inch:6.3,  w:402, h:874,  r:62,    pad:16.1, cutout:'island', islandK:0.80, mm:[71.9,150.0] },
+  { id:'ip17pm', os:'ios', name:'iPhone 17 Pro Max', inch:6.9,  w:440, h:956,  r:62,    pad:15.5, cutout:'island', mm:[78.0,163.4] },
+  { id:'ip16p',  os:'ios', name:'iPhone 16 Pro',     inch:6.3,  w:402, h:874,  r:62,    pad:14.9, cutout:'island', mm:[71.5,149.6] },
   { id:'ip14',   os:'ios', name:'iPhone 14',         inch:6.1,  w:390, h:844,  r:47.33, pad:20.8, cutout:'notch',  mm:[71.5,146.7] },
-  { id:'mi15u',  os:'android', name:'小米 15 Ultra',    inch:6.73, w:440, h:980,  r:56, pad:17,   cutout:'punch', mm:[75.3,161.3] },
-  { id:'s25u',   os:'android', name:'Galaxy S25 Ultra', inch:6.9,  w:480, h:1040, r:52, pad:13,   cutout:'punch', mm:[77.6,162.8] },
-  { id:'p9p',    os:'android', name:'Pixel 9 Pro',      inch:6.3,  w:412, h:924,  r:52, pad:14.5, cutout:'punch', mm:[72.8,152.8] },
-  { id:'agen',   os:'android', name:'Android 通用 · 水滴示例', inch:6.5, w:360, h:780, r:44, pad:13.5, cutout:'waterdrop', mm:[74.9,166.0], generic:true }
+  { id:'mi15u',  os:'android', name:'小米 15 Ultra',    inch:6.73, w:411, h:914,  r:56, pad:15.1, cutout:'punch', mm:[75.3,161.3] },
+  { id:'s25u',   os:'android', name:'Galaxy S25 Ultra', inch:6.9,  w:360, h:780,  r:52, pad:10.3, cutout:'punch', mm:[77.6,162.8] },
+  { id:'p9p',    os:'android', name:'Pixel 9 Pro',      inch:6.3,  w:427, h:952,  r:52, pad:21.2, cutout:'punch', mm:[72.0,152.8] },
+  { id:'agen',   os:'android', name:'Android 通用 · 水滴示例', inch:6.5, w:360, h:780, r:44, pad:15.1, cutout:'waterdrop', mm:[74.9,166.0], generic:true }
 ];
 
 const CUTOUTS = ['island','notch','waterdrop','punch'];
@@ -350,10 +359,11 @@ function squircleGeom(d){
   const rOut = d.r + pad;
   const pOut = (1 + S) * rOut;
   const sFor = (r, inset) => Math.max(0, (pOut - inset) / r - 1);
+  const ins = pad * 0.45;            // 金属边厚度（与 CSS 的 padding 一致）
   return {
     pad,
-    dev:    { w: d.w + pad * 2,        h: d.h + pad * 2,        r: rOut,        s: S },
-    bezel:  { w: d.w + pad * 2 - 10,   h: d.h + pad * 2 - 10,   r: rOut - 5,    s: sFor(rOut - 5, 5) },
+    dev:    { w: d.w + pad * 2,             h: d.h + pad * 2,             r: rOut,             s: S },
+    bezel:  { w: d.w + pad * 2 - ins * 2,   h: d.h + pad * 2 - ins * 2,   r: rOut - ins,       s: sFor(rOut - ins, ins) },
     screen: { w: d.w,                  h: d.h,                  r: d.r,         s: sFor(d.r, pad) }
   };
 }
@@ -374,6 +384,7 @@ function applyDevice(){
   device.style.setProperty('--dh', d.h + 'px');
   device.style.setProperty('--r', d.r + 'px');
   device.style.setProperty('--pad', pad + 'px');
+  device.style.setProperty('--island-k', d.islandK || 1);
   device.classList.toggle('is-android', d.os === 'android');
   scaler.classList.toggle('is-android', d.os === 'android');
   applySquircle();
@@ -381,10 +392,11 @@ function applyDevice(){
   buildDeviceOptions();
 
   const rr = Number.isInteger(d.r) ? d.r : d.r.toFixed(2).replace(/\.?0+$/, '');
+  const unit = d.os === 'ios' ? 'pt' : 'dp';
   if (d.generic){
-    deviceMeta.textContent = `${d.inch}″ · ${d.w} × ${d.h} dp · R${rr} · 通用基准`;
+    deviceMeta.textContent = `${d.inch}″ · ${d.w} × ${d.h} ${unit} · R${rr} · 通用基准`;
   } else {
-    deviceMeta.textContent = `${d.inch}″ · ${d.w} × ${d.h} pt · R${rr} · ${d.mm[0].toFixed(1)} × ${d.mm[1].toFixed(1)} mm`;
+    deviceMeta.textContent = `${d.inch}″ · ${d.w} × ${d.h} ${unit} · R${rr} · ${d.mm[0].toFixed(1)} × ${d.mm[1].toFixed(1)} mm`;
   }
 }
 
@@ -751,10 +763,11 @@ function drawCutout(g, d, W, k){
   const cx = W / 2;
   g.fillStyle = '#000';
   if (state.cutout === 'island'){
-    const w = 0.262 * sw, h = 0.076 * sw;
+    const ik = d.islandK || 1;
+    const w = 0.262 * sw * ik, h = 0.076 * sw * ik;
     rrect(g, cx - w / 2, 0.028 * sw, w, h, h / 2); g.fill();
   } else if (state.cutout === 'notch'){
-    const w = 0.46 * sw, h = 0.066 * sw, r = 0.052 * sw;
+    const w = 0.415 * sw, h = 0.082 * sw, r = 0.038 * sw;
     g.beginPath();
     g.moveTo(cx - w / 2, 0);
     g.lineTo(cx - w / 2, h - r);
@@ -764,7 +777,7 @@ function drawCutout(g, d, W, k){
     g.lineTo(cx + w / 2, 0);
     g.closePath(); g.fill();
   } else if (state.cutout === 'waterdrop'){
-    const w = 0.076 * sw, h = 0.058 * sw;
+    const w = 0.087 * sw, h = 0.06 * sw;
     g.beginPath();
     g.moveTo(cx - w / 2, 0);
     g.lineTo(cx - w / 2, h * 0.42);
@@ -773,9 +786,9 @@ function drawCutout(g, d, W, k){
     g.lineTo(cx + w / 2, 0);
     g.closePath(); g.fill();
   } else {
-    const r = 0.0165 * sw;
+    const r = 0.021 * sw;
     g.beginPath();
-    g.arc(cx, 0.026 * sw + r, r, 0, Math.PI * 2);
+    g.arc(cx, 0.06 * sw, r, 0, Math.PI * 2);
     g.fill();
   }
 }
