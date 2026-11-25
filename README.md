@@ -66,6 +66,8 @@ scripts/make-assets.sh  重新生成示例视频（可选）
 
 ### 外壳素材出处
 
+> 原稿的底部边框只有 13 单位（顶部 47、左右 56），直接渲染会像被裁断一截。仓库里的 PNG 已把**顶部边框镜像接到底部**补齐，机身高度相应增加 30~50 单位，上下边框厚度一致；原始 SVG 保持原样留在 `src/`。
+
 `assets/shells/` 的机身来自 Figma 社区文件 [iPhone 18 Pro / Max / Duo components (vectors)](https://www.figma.com/community/file/1686422548175302738/iphone-18-pro-max-duo-components-vectors)（作者 James Jingyi，CC BY 4.0），与其 [mockup-device-frames](https://github.com/jamesjingyi/mockup-device-frames) 仓库里的 SVG 同源。仓库保留了两份：`assets/shells/*.png` 是运行时用的 1200px 栅格图（浏览器对超大 PNG 做 2 倍以上下采样时会出现块状伪影，故预先缩到与显示尺寸接近），`assets/shells/src/*.svg` 是原始矢量，方便日后重新导出更高分辨率。
 
 ## 浏览器支持
