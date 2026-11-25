@@ -251,12 +251,13 @@ svg{display:block}
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.3));
 }
 /* 状态栏图标用 iOS 固定点值，不随屏宽缩放 */
-.sb-icons{display:flex;align-items:flex-end;gap:7px}
+.sb-icons{display:flex;align-items:flex-end;gap:5.5px}
 .sb-icons svg{display:block;fill:currentColor}
 /* 状态栏图标：高度比按官方 Figma 稿（蜂窝 16 : Wi-Fi 13 : 电池 11） */
-.sb-cell{height:12.4px;width:auto}   /* 20.8:16 → 16.1pt 宽 */
-.sb-wifi{height:10.1px;width:auto} /* 17.4:13 → 13.5pt 宽 */
-.sb-batt{height:8.6px;width:auto}    /* 25.6:11 → 20pt 宽 */
+/* 按官方 SVG 的 viewBox 比例：21:15 / 20:15 / 30:14 */
+.sb-cell{height:12.5px;width:auto}   /* → 17.5pt 宽 */
+.sb-wifi{height:12.5px;width:auto}   /* → 16.7pt 宽 */
+.sb-batt{height:11.7px;width:auto}   /* → 25.1pt 宽 */
 
 .lockscreen{
   position:absolute;inset:0;
