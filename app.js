@@ -619,9 +619,10 @@ function applyDevice(){
     // 每个角单独给半径（铰链侧几乎是直角），比统一圆角更贴合外壳开口
     const e = 0.75;
     const [tl, tr, br, bl] = sh.rad;
+    // 注意：逐角椭圆要写成「横半径 / 纵半径」两组，8 个值连写是无效 CSS
     screenEl.style.borderRadius =
-      `${tl[0] + e}px ${tl[1] + e}px ${tr[0] + e}px ${tr[1] + e}px ` +
-      `${br[0] + e}px ${br[1] + e}px ${bl[0] + e}px ${bl[1] + e}px`;
+      `${tl[0] + e}px ${tr[0] + e}px ${br[0] + e}px ${bl[0] + e}px / ` +
+      `${tl[1] + e}px ${tr[1] + e}px ${br[1] + e}px ${bl[1] + e}px`;
   } else {
     screenEl.style.borderRadius = '';
   }
