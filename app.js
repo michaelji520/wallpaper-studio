@@ -26,6 +26,7 @@ const FRAME = 11; // 机身每边厚度：2px 金属边框 + 9px 黑色面板
 const SHELLS = {
   ip18p: {
     view:[1554, 3004], body:[118, 127, 1319, 2716], screen:[174, 174, 1206, 2622],
+    radii:[[142,142],[142,142],[107,142],[107,142]],   // 屏幕开口四角半径（TL/TR/BR/BL，可椭圆）
     colors:[
       { id:'burgundy', name:'酒红',   dot:'#5e2b35' },
       { id:'glacier',  name:'冰川蓝', dot:'#c8d5e6' },
@@ -35,6 +36,7 @@ const SHELLS = {
   },
   ip18pm: {
     view:[1668, 3248], body:[119, 129, 1430, 2958], screen:[174, 174, 1320, 2868],
+    radii:[[146,139],[146,139],[107,139],[106,138]],
     colors:[
       { id:'burgundy', name:'酒红',   dot:'#5e2b35' },
       { id:'glacier',  name:'冰川蓝', dot:'#c8d5e6' },
@@ -44,10 +46,12 @@ const SHELLS = {
   },
   'ipduo-out': {
     view:[1746, 2425], body:[97, 118, 1531, 2146], screen:[174, 174, 1398, 2034],
+    radii:[[22,20],[137,137],[96,132],[17,19]],   // 铰链侧（左）几乎直角
     colors:[{ id:'starwhite', name:'星光白', dot:'#e8e4dc' }]
   },
   'ipduo-in': {
     view:[3018, 2279], body:[116, 108, 2794, 2010], screen:[174, 174, 2670, 1878],
+    radii:[[88,88],[88,91],[70,91],[70,91]],
     colors:[{ id:'starwhite', name:'星光白', dot:'#e8e4dc' }]
   }
 };
@@ -571,6 +575,7 @@ function shellGeom(d){
     sw: s.screen[2] * k, sh: s.screen[3] * k,
     fx: s.body[0] * k, fy: s.body[1] * k,
     fw: s.view[0] * k, fh: s.view[1] * k,
+    rad: s.radii.map(([x, y]) => [x * k, y * k]),
     src: `assets/shells/${d.shell}-${color.id}.png`
   };
 }
@@ -611,6 +616,14 @@ function applyDevice(){
     device.style.setProperty('--fw', sh.fw + 'px');
     device.style.setProperty('--fh', sh.fh + 'px');
     if (shellFrame.getAttribute('src') !== sh.src) shellFrame.src = sh.src;
+    // 每个角单独给半径（铰链侧几乎是直角），比统一圆角更贴合外壳开口
+    const e = 0.75;
+    const [tl, tr, br, bl] = sh.rad;
+    screenEl.style.borderRadius =
+      `${tl[0] + e}px ${tl[1] + e}px ${tr[0] + e}px ${tr[1] + e}px ` +
+      `${br[0] + e}px ${br[1] + e}px ${bl[0] + e}px ${bl[1] + e}px`;
+  } else {
+    screenEl.style.borderRadius = '';
   }
   applySquircle();
 
@@ -943,6 +956,26 @@ function radialEllipse(g, cx, cy, rx, ry, stops, w, h){
   g.restore();
 }
 
+/** 椭圆四角矩形路径：r = [[tlx,tly],[trx,try],[brx,bry],[blx,bly]] */
+function roundRectR(g, x, y, w, h, r){
+  const lim = (v, m) => Math.max(0, Math.min(v, m));
+  const rtl = [lim(r[0][0], w/2), lim(r[0][1], h/2)];
+  const rtr = [lim(r[1][0], w/2), lim(r[1][1], h/2)];
+  const rbr = [lim(r[2][0], w/2), lim(r[2][1], h/2)];
+  const rbl = [lim(r[3][0], w/2), lim(r[3][1], h/2)];
+  g.beginPath();
+  g.moveTo(x + rtl[0], y);
+  g.lineTo(x + w - rtr[0], y);
+  if (rtr[0] && rtr[1]) g.ellipse(x + w - rtr[0], y + rtr[1], rtr[0], rtr[1], 0, -Math.PI/2, 0);
+  g.lineTo(x + w, y + h - rbr[1]);
+  if (rbr[0] && rbr[1]) g.ellipse(x + w - rbr[0], y + h - rbr[1], rbr[0], rbr[1], 0, 0, Math.PI/2);
+  g.lineTo(x + rbl[0], y + h);
+  if (rbl[0] && rbl[1]) g.ellipse(x + rbl[0], y + h - rbl[1], rbl[0], rbl[1], 0, Math.PI/2, Math.PI);
+  g.lineTo(x, y + rtl[1]);
+  if (rtl[0] && rtl[1]) g.ellipse(x + rtl[0], y + rtl[1], rtl[0], rtl[1], 0, Math.PI, Math.PI * 1.5);
+  g.closePath();
+}
+
 function rrect(g, x, y, w, h, r){
   const rr = Math.min(r, w / 2, h / 2);
   g.beginPath();
@@ -1249,8 +1282,8 @@ function drawPhone(g, vp, layer){
     // 屏幕内容铺满矢量挖空区
     g.save();
     g.translate(sh.sx * z - .75 * z, sh.sy * z - .75 * z);
-    g.beginPath();
-    rrect(g, 0, 0, (sh.sw + 1.5) * z, (sh.sh + 1.5) * z, (d.r + 1.5) * z);
+    roundRectR(g, 0, 0, (sh.sw + 1.5) * z, (sh.sh + 1.5) * z,
+      sh.rad.map(([rx, ry]) => [(rx + .75) * z, (ry + .75) * z]));
     g.clip();
     drawWallpaper(g, (sh.sw + 1.5) * z, (sh.sh + 1.5) * z);
     if (layer) layer.draw(g);
