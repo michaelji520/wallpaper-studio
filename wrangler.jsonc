@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers 静态资源部署配置
+  // 本地构建后执行：npx wrangler deploy
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wallpaper-studio",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}

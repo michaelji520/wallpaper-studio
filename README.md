@@ -66,6 +66,17 @@ npm run serve:dist # 预览构建产物 http://127.0.0.1:8766
 
 `dist/` 是构建产物，已在 `.gitignore` 里；Cloudflare 直接上传这个目录。
 
+## 部署（Cloudflare Workers）
+
+根目录的 `wrangler.jsonc` 把静态资源指向 `./dist`：
+
+```bash
+npm run build     # 产出 dist/（带 hash 的 JS/CSS + 外壳 WebP + _headers）
+npm run deploy    # 等价于 npx wrangler@4 deploy
+```
+
+首次部署会在浏览器里走一遍 `wrangler login`；CI 里改用 `CLOUDFLARE_API_TOKEN` 环境变量即可。`npm run preview:cf` 可以用 `wrangler dev` 在本地起一个和线上一致的 assets 服务（`_headers` 会生效，`python3 -m http.server` 不会）。
+
 ## 目录结构
 
 ```
@@ -75,6 +86,7 @@ app.js                设备数据、圆角路径生成、壁纸渲染与交互
 assets/               示例动态壁纸（mp4 + webm 双源）
 assets/shells/        iPhone 18 / Duo 外壳 WebP（含烘焙投影）与 src/ 下的原始 SVG
 scripts/build.mjs     构建脚本：压缩 JS/CSS、改写引用、产出 dist/
+wrangler.jsonc        Cloudflare Workers 部署配置（assets → ./dist）
 scripts/make-assets.sh  重新生成示例视频（可选）
 package.json          npm 脚本（build / serve / serve:dist）
 dist/                 npm run build 的产物（不入库，部署用）

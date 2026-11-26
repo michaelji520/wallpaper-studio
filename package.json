@@ -7,7 +7,9 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "serve": "python3 -m http.server 8765",
-    "serve:dist": "cd dist && python3 -m http.server 8766"
+    "serve:dist": "cd dist && python3 -m http.server 8766",
+    "deploy": "npm run build && npx --yes wrangler@4 deploy",
+    "preview:cf": "npm run build && npx --yes wrangler@4 dev"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"
