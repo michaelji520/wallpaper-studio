@@ -283,7 +283,7 @@ const DEFAULT_STATE = {
   gloss:true,
   glass:60,        // 液态玻璃浓度 0(极清透)~100(全着色)
   loop:true,
-  theme:'dark',    // 'dark' | 'light'
+  theme:'light',   // 'dark' | 'light'（默认浅色）
   shellColors:{}   // shell key -> colorway id
 };
 
