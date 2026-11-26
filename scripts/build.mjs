@@ -15,6 +15,7 @@
 import { transform } from 'esbuild';
 import { readFile, writeFile, mkdir, rm, readdir, copyFile, stat } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -53,6 +54,8 @@ async function main() {
   await rm(DIST, { recursive: true, force: true });
   await mkdir(DIST, { recursive: true });
 
+  const hashOf = (buf) => createHash('sha256').update(buf).digest('hex').slice(0, 8);
+
   // 2) JS
   const jsSrc = await readFile(path.join(ROOT, 'app.js'), 'utf8');
   const jsOut = await transform(jsSrc, {
@@ -62,8 +65,10 @@ async function main() {
     charset: 'utf8',
     legalComments: 'none',
   });
-  await writeFile(path.join(DIST, 'app.min.js'), jsOut.code);
-  record('app.js', Buffer.byteLength(jsSrc), Buffer.byteLength(jsOut.code), Buffer.from(jsOut.code));
+  const jsBuf = Buffer.from(jsOut.code);
+  const jsName = `app.${hashOf(jsBuf)}.min.js`;
+  await writeFile(path.join(DIST, jsName), jsBuf);
+  record('app.js', Buffer.byteLength(jsSrc), jsBuf.length, jsBuf);
 
   // 3) CSS
   const cssSrc = await readFile(path.join(ROOT, 'styles.css'), 'utf8');
@@ -73,27 +78,49 @@ async function main() {
     charset: 'utf8',
     legalComments: 'none',
   });
-  await writeFile(path.join(DIST, 'styles.min.css'), cssOut.code);
-  record('styles.css', Buffer.byteLength(cssSrc), Buffer.byteLength(cssOut.code), Buffer.from(cssOut.code));
+  const cssBuf = Buffer.from(cssOut.code);
+  const cssName = `styles.${hashOf(cssBuf)}.min.css`;
+  await writeFile(path.join(DIST, cssName), cssBuf);
+  record('styles.css', Buffer.byteLength(cssSrc), cssBuf.length, cssBuf);
 
   // 4) HTML：改写引用 + 构建标记
   const stamp = new Date().toISOString().replace('T', ' ').slice(0, 16) + 'Z';
   let html = await readFile(path.join(ROOT, 'index.html'), 'utf8');
   html = html
-    .replace(/(<link[^>]+href=")styles\.css(")/, '$1styles.min.css$2')
-    .replace(/(<script[^>]+src=")app\.js(")/, '$1app.min.js$2')
-    .replace('</head>', `<!-- build ${stamp} · minified -->\n</head>`);
-  if (!html.includes('styles.min.css') || !html.includes('app.min.js')) {
-    throw new Error('index.html 里没找到 styles.css / app.js 引用，改写过早失败了');
+    .replace(/(<link[^>]+href=")styles\.css(")/, `$1${cssName}$2`)
+    .replace(/(<script[^>]+src=")app\.js(")/, `$1${jsName}$2`)
+    .replace('</head>', `<!-- build ${stamp} -->\n</head>`);
+  if (!html.includes(cssName) || !html.includes(jsName)) {
+    throw new Error('index.html 里没找到 styles.css / app.js 引用，改写失败了');
   }
-  await writeFile(path.join(DIST, 'index.html'), html);
-  record('index.html', await sizeOf(path.join(ROOT, 'index.html')), Buffer.byteLength(html), Buffer.from(html));
+  // HTML 压缩：去掉注释、每行缩进合并成单换行（保留行内空格语义）
+  const htmlMin = html
+    .replace(/<!--(?!\[if)[\s\S]*?-->/g, '')
+    .replace(/\n\s+/g, '\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .trim();
+  await writeFile(path.join(DIST, 'index.html'), htmlMin);
+  const headers = `# Cloudflare Pages 缓存策略
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/*.min.js
+  Cache-Control: public, max-age=31536000, immutable
+/*.min.css
+  Cache-Control: public, max-age=31536000, immutable
+/assets/*
+  Cache-Control: public, max-age=2592000
+`;
+  await writeFile(path.join(DIST, '_headers'), headers);
+  record('index.html', await sizeOf(path.join(ROOT, 'index.html')), Buffer.byteLength(htmlMin), Buffer.from(htmlMin));
 
   // 5) 静态资源
   let assets = 0;
-  assets += await copyDir(path.join(ROOT, 'assets/shells'), path.join(DIST, 'assets/shells'), (n) => n.endsWith('.png'));
+  assets += await copyDir(path.join(ROOT, 'assets/shells'), path.join(DIST, 'assets/shells'), (n) => n.endsWith('.webp'));
   assets += await copyDir(path.join(ROOT, 'assets/apple'), path.join(DIST, 'assets/apple'));
-  assets += await copyDir(path.join(ROOT, 'assets'), path.join(DIST, 'assets'), (n) => /^demo-loop\.(mp4|webm)$/.test(n));
+  assets += await copyDir(path.join(ROOT, 'assets'), path.join(DIST, 'assets'), (n) => /^(demo-loop\.(mp4|webm)|og-cover\.jpg)$/.test(n));
+  await copyFile(path.join(ROOT, 'robots.txt'), path.join(DIST, 'robots.txt'));
 
   // 6) 汇总
   const pad = (s, n) => String(s).padEnd(n);
@@ -105,7 +132,8 @@ async function main() {
     console.log('  ' + pad(r.label, 16) + pad(kb(r.before), 12) + pad(kb(r.after), 12) + pad(kb(r.gzip), 12) + saved);
   }
   console.log('  ' + '─'.repeat(58));
-  console.log(`  assets/  ${kb(assets)}（未压缩，PNG/视频本身已压缩）`);
+  console.log(`  assets/  ${kb(assets)}（未压缩，WebP/视频本身已压缩）`);
+  console.log(`  产物：${jsName} · ${cssName}`);
   console.log(`  输出目录 dist/  ·  用时 ${Date.now() - t0} ms\n`);
 }
 

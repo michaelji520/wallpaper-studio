@@ -10,6 +10,13 @@
 <meta property="og:title" content="壁纸预览台 · Wallpaper Studio" />
 <meta property="og:description" content="按真机尺寸 1:1 预览手机壁纸，支持 iPhone / Android 多机型与图片、视频壁纸。" />
 <meta property="og:url" content="https://wallpaper-studio.heihei2thesky.top/" />
+<meta property="og:image" content="https://wallpaper-studio.heihei2thesky.top/assets/og-cover.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="壁纸预览台 · Wallpaper Studio" />
+<meta name="twitter:description" content="按真机尺寸 1:1 预览手机壁纸，支持 iPhone / Android 多机型与图片、视频壁纸。" />
+<meta name="twitter:image" content="https://wallpaper-studio.heihei2thesky.top/assets/og-cover.jpg" />
 <meta name="theme-color" content="#f5f4f0" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230b0b0d'/%3E%3Crect x='9' y='5' width='14' height='22' rx='4' fill='none' stroke='%23e0c9a6' stroke-width='1.6'/%3E%3C/svg%3E" />
 <script>
@@ -29,7 +36,7 @@ try{
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark"><i></i></span>
-      <span class="brand-text"><b>Wallpaper Studio</b><em>壁纸预览台</em></span>
+      <h1 class="brand-text"><b>Wallpaper Studio</b><em>壁纸预览台</em></h1>
     </div>
 
     <div class="export-bar">
@@ -151,12 +158,12 @@ try{
 
           <div class="slider-row">
             <span>虚化</span>
-            <input type="range" id="blurRange" min="0" max="40" step="1" value="0" />
+            <input type="range" id="blurRange" min="0" max="40" step="1" value="0" aria-label="背景虚化" />
             <b class="mono" id="blurVal">0</b>
           </div>
           <div class="slider-row">
             <span>亮度</span>
-            <input type="range" id="dimRange" min="30" max="120" step="1" value="100" />
+            <input type="range" id="dimRange" min="30" max="120" step="1" value="100" aria-label="背景亮度" />
             <b class="mono" id="dimVal">100%</b>
           </div>
         </section>
@@ -252,7 +259,7 @@ try{
                 <div class="cutout" id="cutout" data-cutout="island"><span class="cam"></span></div>
               </div>
             </div>
-            <img class="shell-frame" id="shellFrame" alt="" aria-hidden="true" />
+            <img class="shell-frame" id="shellFrame" src="assets/shells/ip18pm-burgundy.webp" alt="" aria-hidden="true" decoding="async" fetchpriority="high" />
           </div>
         </div>
       </div>
@@ -260,11 +267,14 @@ try{
 
       <div class="drop-veil" id="dropVeil"><span>松开以应用壁纸</span></div>
 
-      <div class="toast" id="toast"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </div>
   </main>
 </div>
 
 <script src="app.js"></script>
+<noscript>
+  <div class="noscript">这个页面用 Canvas 渲染手机预览，需要开启 JavaScript 才能使用，请开启后刷新。</div>
+</noscript>
 </body>
 </html>

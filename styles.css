@@ -51,7 +51,7 @@ svg{display:block}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 4px 12px rgba(0,0,0,.45);
 }
 .brand-mark i{width:9px;height:15px;border-radius:3px;border:1.4px solid var(--accent);opacity:.9}
-.brand-text{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.brand-text{display:flex;align-items:baseline;gap:8px;white-space:nowrap;margin:0;font-size:inherit;font-weight:inherit;line-height:1}
 .brand-text b{font-size:13px;font-weight:600;letter-spacing:.01em}
 .brand-text em{font-style:normal;font-size:11px;color:var(--faint);letter-spacing:.06em}
 
@@ -886,4 +886,29 @@ html[data-theme="light"] .viewport::after{
 }
 @media (max-width:860px){
   html[data-theme="light"] .panel{border-top-color:rgba(0,0,0,.08);box-shadow:none}
+}
+
+/* ---------- 焦点可见性 / 触控目标 / 无障碍 ---------- */
+:where(button, [href], select, input, .swatch, .preset, .color-dot):focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;   /* 不改 border-radius：outline 会跟随元素自身圆角 */
+}
+/* 小控件补足命中区域（视觉尺寸不变） */
+.color-dot::after{content:'';position:absolute;inset:-7px;border-radius:50%}
+.theme-btn{position:relative}
+.theme-btn::after{content:'';position:absolute;inset:-6px}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
+.noscript{
+  position:fixed;inset:0;z-index:99;display:grid;place-items:center;
+  padding:28px;text-align:center;background:#f5f4f0;color:#1a1b1e;
+  font:14px/1.7 -apple-system,BlinkMacSystemFont,'PingFang SC',system-ui,sans-serif;
 }

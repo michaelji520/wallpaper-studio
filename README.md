@@ -62,7 +62,7 @@ npm run build      # 产出 dist/：app.min.js + styles.min.css + index.html + a
 npm run serve:dist # 预览构建产物 http://127.0.0.1:8766
 ```
 
-构建脚本 `scripts/build.mjs` 做的事：清空 `dist/` → esbuild 压缩 JS/CSS → 改写 `index.html` 里的引用并写入构建时间戳 → 复制运行时资源（外壳 PNG / 官方图标 SVG / 示例视频）→ 打印压缩前后体积和 gzip 估算。当前产物约为 JS 42 KB（gzip 15 KB）、CSS 31 KB（gzip 7 KB）。
+构建脚本 `scripts/build.mjs` 做的事：清空 `dist/` → esbuild 压缩 JS/CSS → 改写 `index.html` 里的引用并写入构建时间戳 → 产物文件名带内容哈希（`app.<hash>.min.js` / `styles.<hash>.min.css`）→ 复制运行时资源（外壳 WebP / 官方图标 SVG / 示例视频 / 分享封面）→ 生成 `_headers` 缓存策略 → 打印压缩前后体积和 gzip 估算。当前产物约为 JS 43 KB（gzip 15 KB）、CSS 32 KB（gzip 7.5 KB）。
 
 `dist/` 是构建产物，已在 `.gitignore` 里；Cloudflare 直接上传这个目录。
 
@@ -73,7 +73,7 @@ index.html            页面结构
 styles.css            样式（含 squircle 裁切层与响应式）
 app.js                设备数据、圆角路径生成、壁纸渲染与交互
 assets/               示例动态壁纸（mp4 + webm 双源）
-assets/shells/        iPhone 18 / Duo 外壳 PNG（含烘焙投影）与 src/ 下的原始 SVG
+assets/shells/        iPhone 18 / Duo 外壳 WebP（含烘焙投影）与 src/ 下的原始 SVG
 scripts/build.mjs     构建脚本：压缩 JS/CSS、改写引用、产出 dist/
 scripts/make-assets.sh  重新生成示例视频（可选）
 package.json          npm 脚本（build / serve / serve:dist）
@@ -86,9 +86,17 @@ dist/                 npm run build 的产物（不入库，部署用）
 
 > 外壳的屏幕开口四角并不相同（Duo 外屏铰链侧几乎是直角，半径 ~7pt；外侧 ~45pt），所以屏幕裁切按 `SHELLS.radii` 逐角给半径，而不是统一 `border-radius`。
 
-> 原稿的底部边框只有 13 单位（顶部 47、左右 56），直接渲染会像被裁断一截。仓库里的 PNG 已把**顶部边框镜像接到底部**补齐，机身高度相应增加 30~50 单位，上下边框厚度一致；原始 SVG 保持原样留在 `src/`。
+> 原稿的底部边框只有 13 单位（顶部 47、左右 56），直接渲染会像被裁断一截。仓库里的 WebP 已把**顶部边框镜像接到底部**补齐，机身高度相应增加 30~50 单位，上下边框厚度一致；原始 SVG 保持原样留在 `src/`。
 
-`assets/shells/` 的机身来自 Figma 社区文件 [iPhone 18 Pro / Max / Duo components (vectors)](https://www.figma.com/community/file/1686422548175302738/iphone-18-pro-max-duo-components-vectors)（作者 James Jingyi，CC BY 4.0），与其 [mockup-device-frames](https://github.com/jamesjingyi/mockup-device-frames) 仓库里的 SVG 同源。仓库保留了两份：`assets/shells/*.png` 是运行时用的 1200px 栅格图（浏览器对超大 PNG 做 2 倍以上下采样时会出现块状伪影，故预先缩到与显示尺寸接近），`assets/shells/src/*.svg` 是原始矢量，方便日后重新导出更高分辨率。
+`assets/shells/` 的机身来自 Figma 社区文件 [iPhone 18 Pro / Max / Duo components (vectors)](https://www.figma.com/community/file/1686422548175302738/iphone-18-pro-max-duo-components-vectors)（作者 James Jingyi，CC BY 4.0），与其 [mockup-device-frames](https://github.com/jamesjingyi/mockup-device-frames) 仓库里的 SVG 同源。仓库保留了两份：`assets/shells/*.webp` 是运行时用的 1200px 栅格图（浏览器对超大位图做 2 倍以上下采样时会出现块状伪影，故预先缩到与显示尺寸接近；WebP q90 比同画质 PNG 小约 65%，十张合计 490 KB），`assets/shells/src/*.svg` 是原始矢量，方便日后重新导出更高分辨率。
+
+## 性能与可访问性
+
+- 首屏只生成当前选中的那张预设壁纸（约 50 ms），其余在 `requestIdleCallback` 里补；预设条用 108×234 缩略图，避免 400 ms 的同步绘制阻塞首帧。
+- 外壳图在 HTML 里就带 `src` + `fetchpriority="high"`，请求从「JS 执行后」提前到「解析 HTML 时」；渲染端 `decoding="async"`。
+- 构建产物带内容哈希并配 `_headers`：JS/CSS 一年 immutable，`/assets/*` 30 天，HTML `no-cache`。
+- 键盘焦点统一 `:focus-visible` 描边；配色圆点与主题按钮补了 `::after` 命中区；Toast 用 `role="status" aria-live="polite"`；滑块补齐 `aria-label`；带 `<noscript>` 兜底。
+- 外壳图加载失败会回退到程序化机身并提示，不会留在页面上显示破图标。
 
 ## 浏览器支持
 

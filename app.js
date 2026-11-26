@@ -298,13 +298,15 @@ const STORE_KEY = 'wallpaper-studio.v1';
    ============================================================ */
 
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-let WP_SRC = {};            // id -> dataURL
+let WP_SRC = {};            // id -> 全尺寸 dataURL（按需生成）
+let WP_THUMB = {};          // id -> 预设条缩略图（很小，首屏一次性生成）
 let mediaURL = null;        // 当前媒体 objectURL
 let envURL = null;          // 环境图 objectURL
 let currentVideo = null;
 let lastByOs = {};
 let toastTimer = null;
 let dragDepth = 0;
+const shellFailed = new Set();   // 外壳图加载失败过的机型 → 回退程序化机身
 
 /* ============================================================
    DOM
@@ -435,14 +437,49 @@ function makeWallpaper(spec, W = 900, H = 1950){
   return c.toDataURL('image/jpeg', .92);
 }
 
+const WP_BY_ID = Object.fromEntries(WALLPAPERS.map(w => [w.id, w]));
+
+/** 全尺寸壁纸（首次调用时生成，约 40~60ms） */
+function wallpaperSrc(id){
+  if (WP_SRC[id]) return WP_SRC[id];
+  const spec = WP_BY_ID[id];
+  if (!spec) return null;
+  try{
+    WP_SRC[id] = makeWallpaper(spec);
+  } catch(err){
+    console.warn('[Wallpaper Studio] 预设生成失败:', id, err);
+    return null;
+  }
+  return WP_SRC[id];
+}
+
+/** 预设条缩略图（108×234，够 32px 宽的砖块用） */
+function wallpaperThumb(id){
+  if (WP_THUMB[id]) return WP_THUMB[id];
+  const spec = WP_BY_ID[id];
+  if (!spec) return '';
+  try{
+    WP_THUMB[id] = makeWallpaper(spec, 108, 234);
+  } catch(err){
+    return '';
+  }
+  return WP_THUMB[id];
+}
+
+/** 首屏只同步生成当前选中那张，其余在空闲时补，避免阻塞首次渲染 */
 function buildWallpapers(){
-  WALLPAPERS.forEach(w => {
-    try{
-      WP_SRC[w.id] = makeWallpaper(w);
-    } catch(err){
-      console.warn('[Wallpaper Studio] 预设生成失败:', w.id, err);
-    }
-  });
+  const active = state.media.kind === 'preset' ? state.media.presetId : null;
+  if (active) wallpaperSrc(active);
+
+  const queue = WALLPAPERS.map(w => w.id).filter(id => id !== active);
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 120));
+  const step = () => {
+    const id = queue.shift();
+    if (!id) return;
+    wallpaperSrc(id);
+    idle(step, { timeout: 1500 });
+  };
+  idle(step, { timeout: 1500 });
 }
 
 /* ============================================================
@@ -563,7 +600,7 @@ function applySquircle(){
 /** 外壳几何：SVG 用户单位 → 逻辑 pt（k = 每单位对应多少 pt） */
 function shellGeom(d){
   const s = d.shell && SHELLS[d.shell];
-  if (!s) return null;
+  if (!s || shellFailed.has(d.shell)) return null;
   const k = d.w / s.screen[2];
   const want = (state.shellColors && state.shellColors[d.shell]) || s.colors[0].id;
   const color = s.colors.find(c => c.id === want) || s.colors[0];
@@ -576,7 +613,7 @@ function shellGeom(d){
     fx: s.body[0] * k, fy: s.body[1] * k,
     fw: s.view[0] * k, fh: s.view[1] * k,
     rad: s.radii.map(([x, y]) => [x * k, y * k]),
-    src: `assets/shells/${d.shell}-${color.id}.png`
+    src: `assets/shells/${d.shell}-${color.id}.webp`
   };
 }
 
@@ -586,6 +623,14 @@ function bodySize(d){
   if (sh) return [sh.bw, sh.bh];
   const pad = d.pad ?? FRAME;
   return [d.w + pad * 2, d.h + pad * 2];
+}
+
+function onShellError(){
+  const d = getDevice();
+  if (!d.shell || shellFailed.has(d.shell)) return;
+  shellFailed.add(d.shell);
+  applyDevice();
+  toast('外壳图加载失败，已回退到简化机身');
 }
 
 function applyDevice(){
@@ -762,7 +807,7 @@ function applyMedia(){
     return;
   }
 
-  const src = m.kind === 'preset' ? WP_SRC[m.presetId] : m.src;
+  const src = m.kind === 'preset' ? wallpaperSrc(m.presetId) : m.src;
   const hasSources = m.kind === 'video' && Array.isArray(m.sources) && m.sources.length > 0;
   if (!src && !hasSources){
     mediaEl.innerHTML = '<div class="ph">壁纸不可用</div>';
@@ -1497,7 +1542,7 @@ function buildPresets(){
     b.className = 'preset';
     b.dataset.id = w.id;
     b.title = w.name;
-    b.style.backgroundImage = `url("${WP_SRC[w.id]}")`;
+    b.style.backgroundImage = `url("${wallpaperThumb(w.id)}")`;
     b.innerHTML = `<span class="pl">${w.name}</span>`;
     b.addEventListener('click', () => {
       setMedia({ kind:'preset', presetId:w.id, name:w.name });
@@ -1583,7 +1628,7 @@ function load(){
     if (typeof s.zoom === 'number') state.zoom = s.zoom;
     if (typeof s.fitMode === 'boolean') state.fitMode = s.fitMode;
     if (s.fit === 'contain' || s.fit === 'cover') state.fit = s.fit;
-    if (s.presetId && WP_SRC[s.presetId]) state.media = { kind:'preset', presetId: s.presetId, name: (WALLPAPERS.find(w => w.id === s.presetId) || {}).name || '预设' };
+    if (s.presetId && WP_BY_ID[s.presetId]) state.media = { kind:'preset', presetId: s.presetId, name: WP_BY_ID[s.presetId].name };
     if (s.env){
       if (ENV_PRESETS.some(p => p.id === s.env.presetId)) state.env.presetId = s.env.presetId;
       // 老快照里如果还是上一版默认「雾白」且没动过虚化/亮度，就跟着升级到新的默认纹理
@@ -1607,6 +1652,11 @@ function load(){
    ============================================================ */
 
 function bind(){
+  // 外壳图加载失败 → 回退到程序化机身，避免出现破图标
+  shellFrame.addEventListener('error', onShellError);
+  // 监听挂上之前就已经失败的（img 在 HTML 里带了默认 src）
+  if (shellFrame.complete && shellFrame.naturalWidth === 0) onShellError();
+
   /* --- 机型 --- */
   osSeg.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-os]');
@@ -1709,13 +1759,13 @@ function bind(){
   blurRange.addEventListener('input', () => {
     state.env.blur = Number(blurRange.value);
     applyEnv();
-    save();
   });
+  blurRange.addEventListener('change', save);
   dimRange.addEventListener('input', () => {
     state.env.dim = Number(dimRange.value);
     applyEnv();
-    save();
   });
+  dimRange.addEventListener('change', save);
 
   /* --- 显示 --- */
   lockToggle.addEventListener('change', () => {
@@ -1878,8 +1928,8 @@ function applyAll(){
 function init(){
   bind();
   buildTextures();
-  buildWallpapers();
   load();
+  buildWallpapers();
   buildPresets();
   buildSwatches();
   applyAll();
