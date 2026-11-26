@@ -12,6 +12,13 @@
 <meta property="og:url" content="https://wallpaper-studio.heihei2thesky.top/" />
 <meta name="theme-color" content="#07080a" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230b0b0d'/%3E%3Crect x='9' y='5' width='14' height='22' rx='4' fill='none' stroke='%23e0c9a6' stroke-width='1.6'/%3E%3C/svg%3E" />
+<script>
+/* 首屏前先套用主题，避免浅色用户看到一帧深色 */
+try{
+  var saved = JSON.parse(localStorage.getItem('wallpaper-studio.v1') || '{}');
+  if (saved && saved.theme === 'light') document.documentElement.dataset.theme = 'light';
+}catch(e){}
+</script>
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -38,6 +45,18 @@
         <output id="zoomOut" class="mono">80%</output>
       </div>
     </div>
+
+    <button class="theme-btn" id="themeBtn" type="button" title="切换为浅色主题（快捷键 T）" aria-label="切换为浅色主题">
+      <!-- 深色主题下显示太阳：点击切到浅色 -->
+      <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.1"/>
+        <path d="M12 2.4v2.3M12 19.3v2.3M2.4 12h2.3M19.3 12h2.3M5.1 5.1l1.7 1.7M17.2 17.2l1.7 1.7M18.9 5.1l-1.7 1.7M6.8 17.2l-1.7 1.7"/>
+      </svg>
+      <!-- 浅色主题下显示月亮 -->
+      <svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.6 13.4A8.7 8.7 0 0 1 10.6 3.4a8.6 8.6 0 1 0 10 10z" fill="currentColor"/>
+      </svg>
+    </button>
   </header>
 
   <main class="stage" id="stage">

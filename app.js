@@ -283,6 +283,7 @@ const DEFAULT_STATE = {
   gloss:true,
   glass:60,        // 液态玻璃浓度 0(极清透)~100(全着色)
   loop:true,
+  theme:'dark',    // 'dark' | 'light'
   shellColors:{}   // shell key -> colorway id
 };
 
@@ -333,6 +334,7 @@ const deviceMeta  = $('deviceMeta');
 const cutoutLabel = $('cutoutLabel');
 
 
+const themeBtn    = $('themeBtn');
 const fitBtn      = $('fitBtn');
 const oneBtn      = $('oneBtn');
 const zoomRange   = $('zoomRange');
@@ -1527,6 +1529,7 @@ function save(){
       gloss: state.gloss,
       glass: state.glass,
       loop: state.loop,
+      theme: state.theme,
       shellColors: state.shellColors
     };
     localStorage.setItem(STORE_KEY, JSON.stringify(snap));
@@ -1556,6 +1559,7 @@ function load(){
     if (typeof s.gloss === 'boolean') state.gloss = s.gloss;
     if (typeof s.glass === 'number') state.glass = Math.min(100, Math.max(0, s.glass));
     if (typeof s.loop === 'boolean') state.loop = s.loop;
+    if (s.theme === 'light' || s.theme === 'dark') state.theme = s.theme;
     if (s.shellColors && typeof s.shellColors === 'object') state.shellColors = s.shellColors;
   } catch(e){ /* 忽略损坏的存储 */ }
 }
@@ -1579,6 +1583,12 @@ function bind(){
   });
 
   deviceSelect.addEventListener('change', () => changeDevice(deviceSelect.value));
+
+  themeBtn.addEventListener('click', () => {
+    state.theme = state.theme === 'light' ? 'dark' : 'light';
+    applyTheme();
+    save();
+  });
 
   shellColorsEl.addEventListener('click', (e) => {
     const btn = e.target.closest('.color-dot');
@@ -1765,6 +1775,11 @@ function bind(){
       applyChrome();
       save();
     }
+    else if (k === 't'){
+      state.theme = state.theme === 'light' ? 'dark' : 'light';
+      applyTheme();
+      save();
+    }
   });
 
   /* --- 自适应 --- */
@@ -1774,6 +1789,18 @@ function bind(){
   } else {
     window.addEventListener('resize', () => { if (state.fitMode) fitNow(); });
   }
+}
+
+/** 主题：只影响界面外壳（标题栏 / 控制台），手机与渲染区不变 */
+function applyTheme(){
+  const light = state.theme === 'light';
+  document.documentElement.dataset.theme = light ? 'light' : 'dark';
+  const label = light ? '切换为深色主题（快捷键 T）' : '切换为浅色主题（快捷键 T）';
+  themeBtn.title = label;
+  themeBtn.setAttribute('aria-label', label);
+  themeBtn.setAttribute('aria-pressed', light ? 'true' : 'false');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', light ? '#f5f4f0' : '#07080a');
 }
 
 function changeDevice(id){
@@ -1796,6 +1823,7 @@ function changeDevice(id){
    ============================================================ */
 
 function applyAll(){
+  applyTheme();
   applyDevice();
   applyCutout();
   applyMedia();
