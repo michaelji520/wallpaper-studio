@@ -8,3 +8,4 @@ dist/
 screenshots/
 docs/
 .cf-token
+.wrangler/
