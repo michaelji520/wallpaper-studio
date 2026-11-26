@@ -121,6 +121,7 @@ async function main() {
   assets += await copyDir(path.join(ROOT, 'assets/apple'), path.join(DIST, 'assets/apple'));
   assets += await copyDir(path.join(ROOT, 'assets'), path.join(DIST, 'assets'), (n) => /^(demo-loop\.(mp4|webm)|og-cover\.jpg)$/.test(n));
   await copyFile(path.join(ROOT, 'robots.txt'), path.join(DIST, 'robots.txt'));
+  await copyFile(path.join(ROOT, 'sitemap.xml'), path.join(DIST, 'sitemap.xml'));
 
   // 6) 汇总
   const pad = (s, n) => String(s).padEnd(n);

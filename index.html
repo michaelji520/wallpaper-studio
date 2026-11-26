@@ -3,20 +3,28 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Wallpaper Studio · 壁纸预览台</title>
-<meta name="description" content="按真机尺寸 1:1 预览手机壁纸：iPhone 与 Android 多机型、灵动岛/刘海/水滴开孔、图片与视频壁纸、环境背景。" />
+<title>手机壁纸预览工具 · 真机 1:1 锁屏效果预览 | 壁纸预览台</title>
+<meta name="description" content="上传图片或视频，按 iPhone 18 Pro Max、Duo 与 Android 真机尺寸 1:1 预览壁纸和锁屏效果，支持灵动岛/刘海，可导出 2K PNG。" />
 <link rel="canonical" href="https://wallpaper-studio.heihei2thesky.top/" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<meta name="keywords" content="手机壁纸预览,壁纸预览工具,iPhone 壁纸尺寸,锁屏壁纸预览,动态壁纸预览" />
 <meta property="og:type" content="website" />
+<meta property="og:site_name" content="壁纸预览台 · Wallpaper Studio" />
+<meta property="og:locale" content="zh_CN" />
 <meta property="og:title" content="壁纸预览台 · Wallpaper Studio" />
 <meta property="og:description" content="按真机尺寸 1:1 预览手机壁纸，支持 iPhone / Android 多机型与图片、视频壁纸。" />
 <meta property="og:url" content="https://wallpaper-studio.heihei2thesky.top/" />
 <meta property="og:image" content="https://wallpaper-studio.heihei2thesky.top/assets/og-cover.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="壁纸预览台界面：左侧控制台与右侧按真机尺寸渲染的 iPhone 18 Pro Max" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="壁纸预览台 · Wallpaper Studio" />
 <meta name="twitter:description" content="按真机尺寸 1:1 预览手机壁纸，支持 iPhone / Android 多机型与图片、视频壁纸。" />
 <meta name="twitter:image" content="https://wallpaper-studio.heihei2thesky.top/assets/og-cover.jpg" />
+<meta name="twitter:image:alt" content="壁纸预览台界面：左侧控制台与右侧按真机尺寸渲染的 iPhone 18 Pro Max" />
+<link rel="alternate" hreflang="zh-CN" href="https://wallpaper-studio.heihei2thesky.top/" />
+<link rel="alternate" hreflang="x-default" href="https://wallpaper-studio.heihei2thesky.top/" />
 <meta name="theme-color" content="#f5f4f0" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230b0b0d'/%3E%3Crect x='9' y='5' width='14' height='22' rx='4' fill='none' stroke='%23e0c9a6' stroke-width='1.6'/%3E%3C/svg%3E" />
 <script>
@@ -272,9 +280,126 @@ try{
   </main>
 </div>
 
+<section class="guide" id="guide" aria-labelledby="guide-h">
+  <div class="guide-inner">
+    <h2 id="guide-h">手机壁纸预览：先在屏幕上看到真机效果</h2>
+    <p>壁纸预览台把一张壁纸放进按真机尺寸渲染的锁屏里，让你在真正换壁纸之前就能看清：灵动岛或刘海会不会挡住画面主体、时间日期压在哪个位置、浅色壁纸下锁屏文字会不会糊成一片。整页按逻辑点 1:1 渲染，可以放大到 160% 逐像素检查，也可以缩到「适应窗口」通览构图。</p>
+
+    <h3>三步完成一次预览</h3>
+    <ol>
+      <li>在左侧「设备」里选机型，iOS 与 Android 共 11 款，开孔会按机型自动切换。</li>
+      <li>把图片拖进上传区，或粘贴剪贴板里的图、粘贴图片链接；视频壁纸同样支持，静音循环播放。</li>
+      <li>用「适应窗口 / 1:1」核对构图，满意后点「2K 图片」导出 2560px 宽的预览图。</li>
+    </ol>
+
+    <h2>支持的机型与开孔</h2>
+    <p>iPhone 侧有 iPhone 18 Pro Max、iPhone 18 Pro、iPhone Duo 外屏、iPhone Duo 内屏、iPhone 17 Pro Max、iPhone 16 Pro 与 iPhone 14；Android 侧有小米 15 Ultra、Galaxy S25 Ultra、Pixel 9 Pro 和一台通用水滴屏样机。iPhone 18 系列与 Duo 用的是官方矢量外壳，机身、侧键、灵动岛、摄像头都按原图还原，屏幕开口与圆角按实测参数逐角对齐。</p>
+    <p>四种开孔都能预览：灵动岛、刘海、水滴、居中挖孔。切换机型时会自动套用该机默认开孔，也可以手动改。</p>
+
+    <h2>iPhone 壁纸尺寸对照表</h2>
+    <p>做壁纸时按下面这组尺寸出图最稳，既不会糊也不会被拉伸：</p>
+    <table>
+      <thead>
+        <tr><th>机型</th><th>逻辑尺寸（pt）</th><th>建议壁纸像素（@3x）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>iPhone 18 Pro Max / 17 Pro Max</td><td>440 × 956</td><td>1320 × 2868</td></tr>
+        <tr><td>iPhone 18 Pro / 16 Pro</td><td>402 × 874</td><td>1206 × 2622</td></tr>
+        <tr><td>iPhone 14</td><td>390 × 844</td><td>1170 × 2532</td></tr>
+        <tr><td>iPhone Duo · 外屏</td><td>466 × 678</td><td>1398 × 2034</td></tr>
+        <tr><td>iPhone Duo · 内屏（横屏）</td><td>890 × 626</td><td>2670 × 1878</td></tr>
+      </tbody>
+    </table>
+
+    <h2>常见问题</h2>
+    <h3>壁纸会上传到服务器吗？</h3>
+    <p>不会。上传、缩放、渲染、导出全部在浏览器里用 Canvas 完成，没有后端接口，断网也能继续用，关掉页面后图片不会留在任何服务器上。</p>
+
+    <h3>能导出多大的图？</h3>
+    <p>「2K 图片」导出 2560px 宽、含环境背景 + 整机 + 锁屏的 PNG；视频壁纸还能录一段 6 秒的 2K WebM。</p>
+
+    <h3>支持动态壁纸吗？</h3>
+    <p>支持 mp4 / webm，静音循环播放，可以暂停和关闭循环。导出视频依赖浏览器的 MediaRecorder，Chrome、Edge、Safari 新版都可以。</p>
+
+    <h3>为什么预览和真机上还有细微差别？</h3>
+    <p>预览按逻辑点渲染，圆角、开孔、边框比例取自实测参数；差异主要来自系统字体版本、锁屏小组件和 iOS 版本本身的调整。</p>
+
+    <h3>可以只看壁纸、不要锁屏界面吗？</h3>
+    <p>可以，按 <kbd>L</kbd> 开关锁屏界面，或者用「显示」里的开关，导出时会跟随当前状态。</p>
+  </div>
+</section>
+
 <script src="app.js"></script>
 <noscript>
   <div class="noscript">这个页面用 Canvas 渲染手机预览，需要开启 JavaScript 才能使用，请开启后刷新。</div>
 </noscript>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://wallpaper-studio.heihei2thesky.top/#website",
+      "url": "https://wallpaper-studio.heihei2thesky.top/",
+      "name": "壁纸预览台 · Wallpaper Studio",
+      "inLanguage": "zh-CN"
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://wallpaper-studio.heihei2thesky.top/#app",
+      "name": "壁纸预览台",
+      "url": "https://wallpaper-studio.heihei2thesky.top/",
+      "applicationCategory": "DesignApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "需要支持 Canvas 与 CSS clip-path 的现代浏览器",
+      "inLanguage": "zh-CN",
+      "isAccessibleForFree": true,
+      "description": "按真机尺寸 1:1 预览手机壁纸与锁屏效果，支持 iPhone 18 Pro / Pro Max、Duo 折叠屏与 Android 多机型，可导出 2560px PNG。",
+      "image": "https://wallpaper-studio.heihei2thesky.top/assets/og-cover.jpg",
+      "screenshot": "https://wallpaper-studio.heihei2thesky.top/assets/og-cover.jpg",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" },
+      "featureList": [
+        "按真机逻辑点 1:1 渲染",
+        "灵动岛 / 刘海 / 水滴 / 挖孔四种开孔",
+        "图片与视频壁纸预览",
+        "2560px PNG 导出与 2K WebM 录制",
+        "纯浏览器本地处理，不上传服务器"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://wallpaper-studio.heihei2thesky.top/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "壁纸会上传到服务器吗？",
+          "acceptedAnswer": { "@type": "Answer", "text": "不会。上传、缩放、渲染、导出全部在浏览器里用 Canvas 完成，没有后端接口，断网也能继续用。" }
+        },
+        {
+          "@type": "Question",
+          "name": "能导出多大的图？",
+          "acceptedAnswer": { "@type": "Answer", "text": "「2K 图片」导出 2560px 宽、含环境背景、整机与锁屏的 PNG；视频壁纸还能录一段 6 秒的 2K WebM。" }
+        },
+        {
+          "@type": "Question",
+          "name": "支持动态壁纸吗？",
+          "acceptedAnswer": { "@type": "Answer", "text": "支持 mp4 与 webm，静音循环播放，可以暂停和关闭循环；导出视频依赖浏览器的 MediaRecorder。" }
+        },
+        {
+          "@type": "Question",
+          "name": "为什么预览和真机上还有细微差别？",
+          "acceptedAnswer": { "@type": "Answer", "text": "预览按逻辑点渲染，圆角、开孔、边框比例取自实测参数；差异主要来自系统字体版本、锁屏小组件和 iOS 版本调整。" }
+        },
+        {
+          "@type": "Question",
+          "name": "可以只看壁纸、不要锁屏界面吗？",
+          "acceptedAnswer": { "@type": "Answer", "text": "可以，按 L 键开关锁屏界面，或使用「显示」里的开关，导出时会跟随当前状态。" }
+        }
+      ]
+    }
+  ]
+}
+</script>
 </body>
 </html>

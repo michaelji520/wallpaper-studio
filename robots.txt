@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://wallpaper-studio.heihei2thesky.top/sitemap.xml

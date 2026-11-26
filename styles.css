@@ -24,7 +24,8 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",Arial,sans-serif;
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
-  overflow:hidden;
+  overflow-x:hidden;
+  overflow-y:auto;   /* 首屏仍是 100dvh 的工具区，下方 SEO 正文可滚 */
 }
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 input{font:inherit}
@@ -911,4 +912,29 @@ html[data-theme="light"] .viewport::after{
   position:fixed;inset:0;z-index:99;display:grid;place-items:center;
   padding:28px;text-align:center;background:#f5f4f0;color:#1a1b1e;
   font:14px/1.7 -apple-system,BlinkMacSystemFont,'PingFang SC',system-ui,sans-serif;
+}
+
+/* ---------- 页脚正文（可索引内容） ---------- */
+.guide{
+  background:var(--bg);color:var(--ink);
+  border-top:1px solid var(--line);
+  padding:56px 24px 72px;
+}
+.guide-inner{max-width:760px;margin:0 auto}
+.guide h2{font-size:19px;font-weight:600;letter-spacing:.01em;margin:0 0 10px}
+.guide h2:not(:first-child){margin-top:40px}
+.guide h3{font-size:13.5px;font-weight:600;margin:22px 0 6px}
+.guide p,.guide li{font-size:13.5px;line-height:1.9;color:var(--muted);margin:0 0 10px}
+.guide ol,.guide ul{margin:0 0 10px;padding-left:20px}
+.guide li{margin-bottom:4px}
+.guide table{width:100%;border-collapse:collapse;margin:14px 0 6px;font-size:12.5px}
+.guide th,.guide td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.guide th{color:var(--ink);font-weight:600;background:rgba(127,127,127,.06);white-space:nowrap}
+.guide td{color:var(--muted);font-variant-numeric:tabular-nums}
+.guide kbd{font-family:var(--mono);font-size:10.5px;padding:1px 5px;border-radius:4px;border:1px solid var(--line-strong);background:rgba(127,127,127,.08);color:var(--ink)}
+@media (max-width:600px){
+  .guide{padding:40px 18px 56px}
+  .guide h2{font-size:17px}
+  .guide table{font-size:11.5px}
+  .guide th,.guide td{padding:7px 6px}
 }
