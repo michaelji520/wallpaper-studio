@@ -1,0 +1,15 @@
+{
+  "name": "wallpaper-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "壁纸预览台 · 纯静态站点（构建脚本只做压缩与打包）",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "serve": "python3 -m http.server 8765",
+    "serve:dist": "cd dist && python3 -m http.server 8766"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

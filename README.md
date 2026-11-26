@@ -52,6 +52,20 @@ python3 -m http.server 8765
 # 然后访问 http://127.0.0.1:8765
 ```
 
+## 构建（压缩）
+
+源码保持未压缩、带注释，部署前跑一次构建即可：
+
+```bash
+npm install        # 只装一个 devDependency：esbuild
+npm run build      # 产出 dist/：app.min.js + styles.min.css + index.html + assets/
+npm run serve:dist # 预览构建产物 http://127.0.0.1:8766
+```
+
+构建脚本 `scripts/build.mjs` 做的事：清空 `dist/` → esbuild 压缩 JS/CSS → 改写 `index.html` 里的引用并写入构建时间戳 → 复制运行时资源（外壳 PNG / 官方图标 SVG / 示例视频）→ 打印压缩前后体积和 gzip 估算。当前产物约为 JS 42 KB（gzip 15 KB）、CSS 31 KB（gzip 7 KB）。
+
+`dist/` 是构建产物，已在 `.gitignore` 里；Cloudflare 直接上传这个目录。
+
 ## 目录结构
 
 ```
@@ -60,7 +74,10 @@ styles.css            样式（含 squircle 裁切层与响应式）
 app.js                设备数据、圆角路径生成、壁纸渲染与交互
 assets/               示例动态壁纸（mp4 + webm 双源）
 assets/shells/        iPhone 18 / Duo 外壳 PNG（含烘焙投影）与 src/ 下的原始 SVG
+scripts/build.mjs     构建脚本：压缩 JS/CSS、改写引用、产出 dist/
 scripts/make-assets.sh  重新生成示例视频（可选）
+package.json          npm 脚本（build / serve / serve:dist）
+dist/                 npm run build 的产物（不入库，部署用）
 ```
 
 预设壁纸是运行时用 Canvas 程序化生成的（渐变 + 平滑径向光斑 + 暗角 + 颗粒），不依赖任何图片文件。
