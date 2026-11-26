@@ -282,7 +282,7 @@ const DEFAULT_STATE = {
   zoom:.8,
   fit:'cover',
   media:{ kind:'preset', presetId:'morning', name:'晨霭' },
-  env:{ mode:'preset', presetId:'mist', src:null, blur:0, dim:100 },
+  env:{ mode:'preset', presetId:'denim', src:null, blur:0, dim:100 },   // 默认背景：牛仔布纹理
   lock:true,
   gloss:true,
   glass:60,        // 液态玻璃浓度 0(极清透)~100(全着色)
@@ -1586,6 +1586,10 @@ function load(){
     if (s.presetId && WP_SRC[s.presetId]) state.media = { kind:'preset', presetId: s.presetId, name: (WALLPAPERS.find(w => w.id === s.presetId) || {}).name || '预设' };
     if (s.env){
       if (ENV_PRESETS.some(p => p.id === s.env.presetId)) state.env.presetId = s.env.presetId;
+      // 老快照里如果还是上一版默认「雾白」且没动过虚化/亮度，就跟着升级到新的默认纹理
+      if (s.env.presetId === 'mist' && (s.env.blur ?? 0) === 0 && (s.env.dim ?? 100) === 100){
+        state.env.presetId = DEFAULT_STATE.env.presetId;
+      }
       if (typeof s.env.blur === 'number') state.env.blur = s.env.blur;
       if (typeof s.env.dim === 'number') state.env.dim = s.env.dim;
     }
