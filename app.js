@@ -1279,8 +1279,9 @@ async function buildChromeLayer(d, k){
     const cx = r.x + r.w / 2, cy = r.y + r.h / 2, rad = r.w / 2;
 
     if (glass){
-      const rim = Math.max(1, rad * 0.045);
-      const rimColor = onLight ? 'rgba(255,255,255,.58)' : 'rgba(255,255,255,.32)';
+      const rim = Math.max(1, rad * 0.03);
+      // 与页面一致：不再画镜面高光，边缘只留一圈很淡的轮廓
+      const rimColor = onLight ? 'rgba(255,255,255,.30)' : 'rgba(255,255,255,.16)';
       const tintA    = onLight ? (0.03 + gk * 0.22) : (0.008 + gk * 0.16);
       const tint     = `rgba(255,255,255,${tintA.toFixed(3)})`;
       const blurPx   = Math.max(2, rad * (0.28 + gk * 0.42));
