@@ -338,8 +338,8 @@ html[data-theme="light"] .theme-btn .ic-moon{display:block}
 }
 .orb svg{fill:currentColor;width:auto}
 
-.orb .ic-flash{height:21px}   /* 415:1000 → 8.7pt 宽 */
-.orb .ic-cam{height:17px}     /* 1288:1000 → 21.9pt 宽 */
+.orb .ic-flash{height:27px}   /* 字形占圆钮 54.6%（取自 iOS 26 设计稿 31.68/58） */
+.orb .ic-cam{height:22px}     /* 25.83/58 → 44.5%，宽度约 28px */
 
 .device.is-android .lockscreen{align-items:flex-start;text-align:left;padding:calc(var(--dh) * .13) calc(var(--dw) * .075) calc(var(--dh) * .045)}
 .device.is-android .lock-main{align-items:flex-start}
