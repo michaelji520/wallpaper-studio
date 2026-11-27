@@ -1245,13 +1245,14 @@ async function buildChromeLayer(d, k){
       if (glass && isTime){
         const gr = g.createLinearGradient(0, r.y, 0, r.y + r.h);
         if (onLight){
-          gr.addColorStop(0,   'rgba(20,18,15,.86)');
-          gr.addColorStop(.52, 'rgba(20,18,15,.72)');
-          gr.addColorStop(1,   'rgba(20,18,15,.82)');
+          gr.addColorStop(0,   'rgba(20,18,15,.82)');
+          gr.addColorStop(.52, 'rgba(20,18,15,.66)');
+          gr.addColorStop(1,   'rgba(20,18,15,.80)');
         } else if (screenEl.classList.contains('on-glass')){
-          gr.addColorStop(0,   `rgba(${clockRGB},${(0.56 + gk * 0.40).toFixed(3)})`);
-          gr.addColorStop(.52, `rgba(${clockRGB},${(0.46 + gk * 0.33).toFixed(3)})`);
-          gr.addColorStop(1,   `rgba(${clockRGB},${(0.54 + gk * 0.39).toFixed(3)})`);
+          // 与 CSS 同步：去掉描边后整体提高了一点不透明度，导出要跟上
+          gr.addColorStop(0,   `rgba(${clockRGB},${(0.66 + gk * 0.30).toFixed(3)})`);
+          gr.addColorStop(.52, `rgba(${clockRGB},${(0.57 + gk * 0.25).toFixed(3)})`);
+          gr.addColorStop(1,   `rgba(${clockRGB},${(0.64 + gk * 0.29).toFixed(3)})`);
         } else {
           gr.addColorStop(0,   'rgba(255,255,255,.99)');
           gr.addColorStop(.52, 'rgba(255,255,255,.92)');
