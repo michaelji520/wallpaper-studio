@@ -48,8 +48,8 @@ try{
     </div>
 
     <div class="export-bar">
-      <button class="ebtn" id="exportImg" title="导出内容区 2K PNG">2K 图片</button>
-      <button class="ebtn" id="exportVid" title="录制内容区 2K 视频（需视频壁纸）">2K 视频</button>
+      <button class="ebtn" id="exportImg" title="导出内容区 PNG（2560px 宽）">下载图片</button>
+      <button class="ebtn" id="exportVid" title="录制内容区视频（6 秒 WebM，需视频壁纸）">下载视频</button>
     </div>
 
     <div class="zoom-bar">
@@ -289,7 +289,7 @@ try{
     <ol>
       <li>在左侧「设备」里选机型，iOS 与 Android 共 11 款，开孔会按机型自动切换。</li>
       <li>把图片拖进上传区，或粘贴剪贴板里的图、粘贴图片链接；视频壁纸同样支持，静音循环播放。</li>
-      <li>用「适应窗口 / 1:1」核对构图，满意后点「2K 图片」导出 2560px 宽的预览图。</li>
+      <li>用「适应窗口 / 1:1」核对构图，满意后点「下载图片」导出 2560px 宽的预览图。</li>
     </ol>
 
     <h2>支持的机型与开孔</h2>
@@ -316,7 +316,7 @@ try{
     <p>不会。上传、缩放、渲染、导出全部在浏览器里用 Canvas 完成，没有后端接口，断网也能继续用，关掉页面后图片不会留在任何服务器上。</p>
 
     <h3>能导出多大的图？</h3>
-    <p>「2K 图片」导出 2560px 宽、含环境背景 + 整机 + 锁屏的 PNG；视频壁纸还能录一段 6 秒的 2K WebM。</p>
+    <p>「下载图片」导出 2560px 宽、含环境背景 + 整机 + 锁屏的 PNG；视频壁纸还能用「下载视频」录一段 6 秒的 WebM。</p>
 
     <h3>支持动态壁纸吗？</h3>
     <p>支持 mp4 / webm，静音循环播放，可以暂停和关闭循环。导出视频依赖浏览器的 MediaRecorder，Chrome、Edge、Safari 新版都可以。</p>
@@ -379,7 +379,7 @@ try{
         {
           "@type": "Question",
           "name": "能导出多大的图？",
-          "acceptedAnswer": { "@type": "Answer", "text": "「2K 图片」导出 2560px 宽、含环境背景、整机与锁屏的 PNG；视频壁纸还能录一段 6 秒的 2K WebM。" }
+          "acceptedAnswer": { "@type": "Answer", "text": "「下载图片」导出 2560px 宽、含环境背景、整机与锁屏的 PNG；视频壁纸还能用「下载视频」录一段 6 秒的 WebM。" }
         },
         {
           "@type": "Question",
