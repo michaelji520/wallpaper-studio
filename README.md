@@ -66,6 +66,12 @@ npm run serve:dist # 预览构建产物 http://127.0.0.1:8766
 
 `dist/` 是构建产物，已在 `.gitignore` 里；Cloudflare 直接上传这个目录。
 
+## 安全响应头与 PWA
+
+- 构建会生成 `dist/_headers`：CSP（内联脚本用 **sha256 白名单**，不留 `'unsafe-inline'`）、`X-Content-Type-Options`、`Referrer-Policy`、`Permissions-Policy`、`X-Frame-Options`、`Strict-Transport-Security`，以及分级缓存策略。
+- 站点带 `sw.js`（HTML 网络优先、静态资源 stale-while-revalidate）与 `manifest.webmanifest`：首次访问后断网刷新仍可用。
+- `http://` 跳 `https://` 需要站点侧开关：Cloudflare → SSL/TLS → Edge Certificates → 打开 **Always Use HTTPS**（HSTS 已在响应头里，建议同时打开面板里的 HSTS 开关）。
+
 ## 部署（Cloudflare Workers）
 
 根目录的 `wrangler.jsonc` 把静态资源指向 `./dist`：

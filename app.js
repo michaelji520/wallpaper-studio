@@ -440,8 +440,16 @@ function makeWallpaper(spec, W = 900, H = 1950){
 const WP_BY_ID = Object.fromEntries(WALLPAPERS.map(w => [w.id, w]));
 
 /** 全尺寸壁纸（首次调用时生成，约 40~60ms） */
+const WP_KEEP = 3;          // 全尺寸壁纸最多留 3 张，其余按 LRU 释放
+const WP_ORDER = [];
+
 function wallpaperSrc(id){
-  if (WP_SRC[id]) return WP_SRC[id];
+  if (WP_SRC[id]){
+    const i = WP_ORDER.indexOf(id);
+    if (i >= 0) WP_ORDER.splice(i, 1);
+    WP_ORDER.push(id);
+    return WP_SRC[id];
+  }
   const spec = WP_BY_ID[id];
   if (!spec) return null;
   try{
@@ -449,6 +457,11 @@ function wallpaperSrc(id){
   } catch(err){
     console.warn('[Wallpaper Studio] 预设生成失败:', id, err);
     return null;
+  }
+  WP_ORDER.push(id);
+  while (WP_ORDER.length > WP_KEEP){
+    const drop = WP_ORDER.shift();
+    if (drop !== id) delete WP_SRC[drop];
   }
   return WP_SRC[id];
 }
@@ -1944,6 +1957,12 @@ function init(){
     else setZoom(state.zoom, false);
     requestAnimationFrame(() => scaler.classList.remove('no-anim'));
   });
+
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
 
   if (location.protocol === 'file:'){
     console.warn('[Wallpaper Studio] 建议通过 http/https 打开，视频与本地资源更稳定。');

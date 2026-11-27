@@ -100,7 +100,45 @@ async function main() {
     .replace(/[ \t]+\n/g, '\n')
     .trim();
   await writeFile(path.join(DIST, 'index.html'), htmlMin);
-  const headers = `# Cloudflare Pages 缓存策略
+  // 内联脚本（主题引导 / 外壳图）用 sha256 放行，避免为了 CSP 放开 'unsafe-inline'
+  const inlineTexts = [...htmlMin.matchAll(/<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/script>/g)]
+    .map((m) => m[1])
+    .filter((t) => t.trim().length);
+  const scriptHashes = inlineTexts
+    .map((t) => `'sha256-${createHash('sha256').update(t, 'utf8').digest('base64')}'`)
+    .join(' ');
+
+  const csp = [
+    "default-src 'self'",
+    `script-src 'self' ${scriptHashes}`.trim(),
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: https:",
+    "font-src 'self'",
+    "connect-src 'self' blob: data:",
+    "manifest-src 'self'",
+    "worker-src 'self'",
+    "base-uri 'self'",
+    "form-action 'none'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    'upgrade-insecure-requests',
+  ].join('; ');
+
+  const security = [
+    `  Content-Security-Policy: ${csp}`,
+    '  X-Content-Type-Options: nosniff',
+    '  Referrer-Policy: strict-origin-when-cross-origin',
+    '  Permissions-Policy: geolocation=(), microphone=(), camera=(), interest-cohort=()',
+    '  X-Frame-Options: DENY',
+    '  Strict-Transport-Security: max-age=31536000; includeSubDomains',
+  ].join('\n');
+
+  const headers = `# Cloudflare 缓存与安全响应头
+/*
+${security}
+
+# 缓存策略
 /
   Cache-Control: no-cache
 /index.html
@@ -122,6 +160,10 @@ async function main() {
   assets += await copyDir(path.join(ROOT, 'assets'), path.join(DIST, 'assets'), (n) => /^(demo-loop\.(mp4|webm)|og-cover\.jpg)$/.test(n));
   await copyFile(path.join(ROOT, 'robots.txt'), path.join(DIST, 'robots.txt'));
   await copyFile(path.join(ROOT, 'sitemap.xml'), path.join(DIST, 'sitemap.xml'));
+  await copyFile(path.join(ROOT, 'sw.js'), path.join(DIST, 'sw.js'));
+  await copyFile(path.join(ROOT, 'manifest.webmanifest'), path.join(DIST, 'manifest.webmanifest'));
+  await copyFile(path.join(ROOT, 'favicon.ico'), path.join(DIST, 'favicon.ico'));
+  assets += await copyDir(path.join(ROOT, 'assets/icons'), path.join(DIST, 'assets/icons'));
 
   // 6) 汇总
   const pad = (s, n) => String(s).padEnd(n);
@@ -135,6 +177,7 @@ async function main() {
   console.log('  ' + '─'.repeat(58));
   console.log(`  assets/  ${kb(assets)}（未压缩，WebP/视频本身已压缩）`);
   console.log(`  产物：${jsName} · ${cssName}`);
+  console.log(`  CSP：放行 ${inlineTexts.length} 段内联脚本（sha256）`);
   console.log(`  输出目录 dist/  ·  用时 ${Date.now() - t0} ms\n`);
 }
 
