@@ -1270,51 +1270,16 @@ async function buildChromeLayer(d, k){
     });
   }
 
+  // 圆钮是整张玻璃按钮图（自带高光、描边、投影），直接贴图，不再用 canvas 重绘玻璃
   for (const orb of document.querySelectorAll('.orb')){
     const r = toC(orb.getBoundingClientRect());
-    const cs = getComputedStyle(orb);
-    const iconEl = orb.querySelector('svg');
-    const ir = iconEl ? toC(iconEl.getBoundingClientRect()) : null;
-    const icon = iconEl ? await svgImage(iconEl, cs.color) : null;
-    const cx = r.x + r.w / 2, cy = r.y + r.h / 2, rad = r.w / 2;
-
-    if (glass){
-      const rim = Math.max(1, rad * 0.03);
-      // 与页面一致：不再画镜面高光，边缘只留一圈很淡的轮廓
-      const rimColor = onLight ? 'rgba(255,255,255,.30)' : 'rgba(255,255,255,.16)';
-      const tintA    = onLight ? (0.03 + gk * 0.22) : (0.008 + gk * 0.16);
-      const tint     = `rgba(255,255,255,${tintA.toFixed(3)})`;
-      const blurPx   = Math.max(2, rad * (0.28 + gk * 0.42));
-      ops.push(g => {
-        g.save();
-        g.beginPath();
-        g.arc(cx, cy, rad - rim / 2, 0, Math.PI * 2);
-        g.clip();
-        // 背景折射：把壁纸重新模糊画一遍
-        if ('filter' in g) g.filter = `blur(${blurPx}px)`;
-        drawWallpaper(g, SW, SH);
-        if ('filter' in g) g.filter = 'none';
-        g.fillStyle = tint;
-        g.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
-        g.restore();
-        // 玻璃边缘
-        g.beginPath();
-        g.arc(cx, cy, rad - rim / 2, 0, Math.PI * 2);
-        g.strokeStyle = rimColor;
-        g.lineWidth = rim;
-        g.stroke();
-        if (icon && ir) g.drawImage(icon, ir.x, ir.y, ir.w, ir.h);
-      });
-    } else {
-      const orbBg = cs.backgroundColor;
-      ops.push(g => {
-        g.fillStyle = orbBg;
-        g.beginPath();
-        g.arc(cx, cy, rad, 0, Math.PI * 2);
-        g.fill();
-        if (icon && ir) g.drawImage(icon, ir.x, ir.y, ir.w, ir.h);
+    if (!orb.complete){
+      await new Promise(res => {
+        orb.addEventListener('load', res, { once: true });
+        orb.addEventListener('error', res, { once: true });
       });
     }
+    ops.push(g => { if (orb.naturalWidth) g.drawImage(orb, r.x, r.y, r.w, r.h); });
   }
 
   const hb = document.querySelector('.home-bar');

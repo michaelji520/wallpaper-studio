@@ -328,18 +328,11 @@ html[data-theme="light"] .theme-btn .ic-moon{display:block}
   font-feature-settings:"tnum";
 }
 .lock-orbs{display:flex;justify-content:space-between;width:100%;padding:0 calc(var(--dw) * .066)}
+/* 圆钮：直接用设计导出的玻璃按钮图（自带高光/描边），不再叠加任何玻璃样式 */
 .orb{
-  width:50px;height:50px;border-radius:50%;
-  display:grid;place-items:center;
-  background:rgba(255,255,255,.14);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
-  color:rgba(255,255,255,.86);
+  width:50px;height:50px;display:block;flex:0 0 auto;
+  user-select:none;-webkit-user-drag:none;
 }
-.orb svg{fill:currentColor;width:auto}
-
-.orb .ic-flash{height:27px}   /* 字形占圆钮 54.6%（取自 iOS 26 设计稿 31.68/58） */
-.orb .ic-cam{height:22px}     /* 25.83/58 → 44.5%，宽度约 28px */
 
 .device.is-android .lockscreen{align-items:flex-start;text-align:left;padding:calc(var(--dh) * .13) calc(var(--dw) * .075) calc(var(--dh) * .045)}
 .device.is-android .lock-main{align-items:flex-start}
@@ -361,8 +354,6 @@ html[data-theme="light"] .theme-btn .ic-moon{display:block}
 .device.is-landscape .lock-time{font-size:calc(var(--ui) * .27);margin-top:calc(var(--ui) * .008)}
 .device.is-landscape .lock-orbs{padding:0 calc(var(--ui) * .085)}
 .device.is-landscape .orb{width:calc(var(--ui) * .088);height:calc(var(--ui) * .088)}
-.device.is-landscape .orb .ic-flash{height:calc(var(--ui) * .038)}
-.device.is-landscape .orb .ic-cam{height:calc(var(--ui) * .032)}
 .device.is-landscape .home-bar{width:calc(var(--ui) * .30);height:max(4px,calc(var(--ui) * .012));bottom:calc(var(--dh) * .024)}
 
 /* 浅色壁纸：锁屏文字转深色 */
@@ -371,7 +362,6 @@ html[data-theme="light"] .theme-btn .ic-moon{display:block}
 .screen.on-light .lock-date{color:#171512;text-shadow:0 1px 18px rgba(255,255,255,.45)}
 .screen.on-light .statusbar{color:#171512;filter:none;opacity:.8}
 .screen.on-light .home-bar{background:rgba(23,21,18,.82);box-shadow:none}
-.screen.on-light .orb{background:rgba(23,21,18,.12);color:rgba(23,21,18,.82);box-shadow:0 2px 8px rgba(0,0,0,.10)}
 
 /* ---------- Liquid Glass（iOS 26/27 锁屏材质） ---------- */
 /* 时钟：玻璃字 —— 渐变填充 + 上缘高光 + 柔和投影，代替原先的纯白实心 */
@@ -410,17 +400,6 @@ html[data-theme="light"] .theme-btn .ic-moon{display:block}
   -webkit-text-stroke:.5px rgba(255,255,255,.38);
 }
 
-/* 圆钮：半透明磨砂（去掉镜面高光与折射亮边，图标不再"反光"） */
-.device:not(.is-android) .orb{
-  position:relative;
-  background:rgba(255,255,255, calc(.008 + var(--glass-k,.6) * .12));
-  backdrop-filter:blur(calc(15px + var(--glass-k,.6) * 20px)) saturate(150%);
-  -webkit-backdrop-filter:blur(calc(15px + var(--glass-k,.6) * 20px)) saturate(150%);
-  border:.5px solid rgba(255,255,255,.16);
-  box-shadow:0 2px 8px rgba(0,0,0,.10);
-  color:rgba(255,255,255,.96);
-}
-.device:not(.is-android) .orb::before{content:none}
 
 /* 状态栏：玻璃上的图标，投影更散更柔 */
 .device:not(.is-android) .statusbar{
@@ -443,17 +422,6 @@ html[data-theme="light"] .theme-btn .ic-moon{display:block}
     drop-shadow(0 10px 26px rgba(90,80,70,.20));
 }
 .screen.on-light .lock-date{color:rgba(20,18,15,.88);text-shadow:0 1px 10px rgba(255,255,255,.5)}
-.screen.on-light .orb{
-  background:radial-gradient(130% 130% at 32% 16%,
-    rgba(255,255,255,.30) 0%,
-    rgba(255,255,255,.12) 45%,
-    rgba(255,255,255,.18) 100%);
-  border-color:rgba(255,255,255,.55);
-  box-shadow:
-    inset 0 -1px 2px rgba(90,80,70,.08),
-    0 4px 14px rgba(90,80,70,.12);
-  color:rgba(20,18,15,.80);
-}
 
 
 /* ---------- panel ---------- */
